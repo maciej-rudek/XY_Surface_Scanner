@@ -40,17 +40,20 @@ class ImCH:
     data = np.random.random((ImCont.res, ImCont.res, ImCont.res))
 
 
-
 @dataclass
 class ScanData:
     DataCH1: c_double = (c_double*ImCont.Sample)()
     DataCH2: c_double = (c_double*ImCont.Sample)()
+    f_ch1 = np.arange(ImCont.Sample, dtype=float)
+    f_ch2 = np.arange(ImCont.Sample, dtype=float)
+
 
 par = { 'oxy' : 5.0, 'dx' : 0.0, 'dy' : 0.0, 
         'adc1' : 't', 'adc2' : 't', 'dac1' : 'n', 'dac2' : 'n',
         'range' : 1.0 , 'int' : 'n', 'scan' : 'n', 'save' : 'n',
         'log' : 't',
         'exit' : 't'}
+
 
 if sys.platform.startswith("win"):
     dwf = cdll.dwf
@@ -59,18 +62,6 @@ elif sys.platform.startswith("darwin"):
 else:
     dwf = cdll.LoadLibrary("libdwf.so")
 
-
-
-# ImCont.Sample = 4000
-# secLog =  0.04# logging rate in seconds printf(c_double(nSamples/secLog))
-
-CH1 = (c_double*ImCont.Sample)()
-CH2 = (c_double*ImCont.Sample)()
-
-
-
-f_ch1 = np.arange(ImCont.Sample, dtype=float)
-f_ch2 = np.arange(ImCont.Sample, dtype=float)
 
 # First set up the figure, the axis, and the plot element we want to animate
 fig = plt.figure()
@@ -86,12 +77,9 @@ ax4 = fig.add_subplot(gs[1, :], label="2", frame_on=False)
 def cykacz():
     global ImCH
     global ImCont
-    global CH1
-    global CH1
+    global ScanData
     stan = 0
-    global f_ch1
-    global f_ch2
-    global par
+
     resolution = ImCont.res
 
     while (par['exit'] == 't'):
@@ -107,20 +95,20 @@ def cykacz():
         start_osciloscope()
 
         for i in range(ImCont.Sample):
-            f_ch1[i] = float(CH1[i] * par['range'])
-            f_ch2[i] = float(CH2[i] * par['range'])
+            ScanData.f_ch1[i] = float(ScanData.DataCH1[i] * par['range'])
+            ScanData.f_ch2[i] = float(ScanData.DataCH2[i] * par['range'])
         
         maks = ImCont.Sample
         marg = 0.1 * maks
 
-        # ImCH.CH2[y, ImCont.x] = np.mean(f_ch2) 
+        # ImCH.CH2[y, ImCont.x] = np.mean(ScanData.f_ch2) 
 
         if (par['scan'] == 't'):
             if (stan == 0):
                 ImCont.dir = 0
                 ImCont.x = ImCont.x + 1
-                ImCH.CH1[ImCont.y, ImCont.x] = np.mean(f_ch1[int(marg):int(maks-marg)])
-                ImCH.CH2[ImCont.y, ImCont.x] = np.mean(f_ch2[int(marg):int(maks-marg)]) 
+                ImCH.CH1[ImCont.y, ImCont.x] = np.mean(ScanData.f_ch1[int(marg):int(maks-marg)])
+                ImCH.CH2[ImCont.y, ImCont.x] = np.mean(ScanData.f_ch2[int(marg):int(maks-marg)]) 
                 if (ImCont.x == (resolution - 1)):
                     stan = 1
                 
@@ -132,8 +120,8 @@ def cykacz():
 
             elif (stan == 2):
                 ImCont.dir = 1
-                ImCH.CH3[ImCont.y, ImCont.x] = np.mean(np.mean(f_ch1[int(marg):int(maks-marg)]))
-                ImCH.CH4[ImCont.y, ImCont.x] = np.mean(f_ch2[int(marg):int(maks-marg)]) 
+                ImCH.CH3[ImCont.y, ImCont.x] = np.mean(np.mean(ScanData.f_ch1[int(marg):int(maks-marg)]))
+                ImCH.CH4[ImCont.y, ImCont.x] = np.mean(ScanData.f_ch2[int(marg):int(maks-marg)]) 
                 ImCont.x = ImCont.x - 1
                 if (ImCont.x == 0):
                     stan = 3
@@ -191,8 +179,6 @@ def open_device():
     print("Opening first device")
     dwf.FDwfDeviceOpen(c_int(-1), byref(hdwf))
 
-    # print(str(ImCont.Sample/secLog))
-
     if hdwf.value == hdwfNone.value:
         szerr = create_string_buffer(512)
         dwf.FDwfGetLastErrorMsg(szerr)
@@ -200,36 +186,26 @@ def open_device():
         print("failed to open device")
         quit()
 
-    #set up acquisition
-
+    #set up acquisition 
     dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(0), c_bool(True))
     dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(1), c_bool(True))
-    # dwf.FDwfAnalogInChannelRangeSet(hdwf, c_int(0), c_double(5))
-    # dwf.FDwfAnalogInChannelRangeSet(hdwf, c_int(1), c_double(5))
-    dwf.FDwfAnalogInAcquisitionModeSet(hdwf, acqmodeRecord) #acqmodeScanShift
-    # dwf.FDwfAnalogInFrequencySet(hdwf, c_double(ImCont.Sample/secLog))
-    # #dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double(0.02))
+    dwf.FDwfAnalogInAcquisitionModeSet(hdwf, acqmodeRecord)
     # dwf.FDwfAnalogInBufferSizeSet(hdwf, c_int(ImCont.Sample))
-    #TESTY:
     dwf.FDwfAnalogInFrequencySet(hdwf, ImCont.hzAcq)
     dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ImCont.Sample/ImCont.hzAcq.value) - 1)) 
 
-    #wait at least 2 seconds for the offset to stabilize
     dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_bool(True))
     dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(0), AnalogOutNodeCarrier, funcDC)
     dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_bool(True))
     dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(1), AnalogOutNodeCarrier, funcDC)
+    #wait at least 2 seconds for the offset to stabilize
     time.sleep(2)
 
 def start_osciloscope():
-    # while(par['exit'] == 't'):
-    # print("Starting oscilloscope")
-    dwf.FDwfAnalogInConfigure(hdwf, c_int(0), c_int(1))
-
-    cSamples = 0
-    global CH1
-    global CH2
     global ImCont
+    cSamples = 0
+
+    dwf.FDwfAnalogInConfigure(hdwf, c_int(0), c_int(1))
 
     while cSamples < ImCont.Sample:
         dwf.FDwfAnalogInStatus(hdwf, c_int(1), byref(sts))
@@ -251,8 +227,8 @@ def start_osciloscope():
         if cSamples+ImCont.cAvailable.value > ImCont.Sample :
             ImCont.cAvailable = c_int(ImCont.Sample-cSamples)
         
-        dwf.FDwfAnalogInStatusData(hdwf, c_int(0), byref(CH1, sizeof(c_double)*cSamples), ImCont.cAvailable) # get channel 1 data
-        dwf.FDwfAnalogInStatusData(hdwf, c_int(1), byref(CH2, sizeof(c_double)*cSamples), ImCont.cAvailable) # get channel 2 data
+        dwf.FDwfAnalogInStatusData(hdwf, c_int(0), byref(ScanData.DataCH1, sizeof(c_double)*cSamples), ImCont.cAvailable) # get channel 1 data
+        dwf.FDwfAnalogInStatusData(hdwf, c_int(1), byref(ScanData.DataCH2, sizeof(c_double)*cSamples), ImCont.cAvailable) # get channel 2 data
         cSamples += ImCont.cAvailable.value
 
     if (par['log'] == 't'):
@@ -291,7 +267,7 @@ def update_pictures(i):
             ax3.tick_params(axis='x', colors="C1")
             ax3.tick_params(axis='y', colors="C1")
             if(par['scan'] == 'n'):
-                ax3.plot(x, CH1, color="C1")
+                ax3.plot(x, ScanData.DataCH1, color="C1")
             else:
                 if(ImCont.dir == 0):
                     if(ImCont.oY == 0):
@@ -313,7 +289,7 @@ def update_pictures(i):
             ax4.tick_params(axis='x', colors="C0")
             ax4.tick_params(axis='y', colors="C0")
             if(par['scan'] == 'n'):
-                ax4.plot(x, CH2, color="C0")
+                ax4.plot(x, ScanData.DataCH2, color="C0")
             else:
                 if(ImCont.dir == 0):
                     if(ImCont.oY == 0):
