@@ -1,27 +1,33 @@
-from ctypes import *
-from dwfconstants import *
-import math
 import sys
-
-import numpy as np
-from matplotlib import pyplot as plt
-from matplotlib import animation
 import matplotlib
 import threading
-from time import sleep
 import time
+import numpy as np
+
+from ctypes import *
+from dwfconstants import *
+from matplotlib import pyplot as plt
+from matplotlib import animation
+from dataclasses import dataclass
 
 np.random.seed(19680801)
 resolution = 200
-data = np.random.random((resolution, resolution, resolution))
-CH_1_img = np.zeros((resolution, resolution))
-CH_2_img = np.zeros((resolution, resolution))
-CH_3_img = np.zeros((resolution, resolution))
-CH_4_img = np.zeros((resolution, resolution))
-x = 0
-y = 0
-oY = 0;
-kierunek = 0
+
+@dataclass
+class ImPar:
+    res = 200
+    dir = 0
+    x = 0
+    y = 0
+    oY = 0
+
+@dataclass
+class ImCH:
+    CH1: float = np.zeros((ImPar.res, ImPar.res))
+    CH2: float = np.zeros((ImPar.res, ImPar.res))
+    CH3: float = np.zeros((ImPar.res, ImPar.res))
+    CH4: float = np.zeros((ImPar.res, ImPar.res))
+    data = np.random.random((ImPar.res, ImPar.res, ImPar.res))
 
 par = { 'oxy' : 5.0, 'dx' : 0.0, 'dy' : 0.0, 
         'adc1' : 't', 'adc2' : 't', 'dac1' : 'n', 'dac2' : 'n',
@@ -73,10 +79,11 @@ ax3 = fig.add_subplot(gs[1, :], label="1")
 ax4 = fig.add_subplot(gs[1, :], label="2", frame_on=False)
 
 def cykacz():
-    global CH_1_img
-    global CH_2_img
-    global CH_3_img
-    global CH_4_img
+    global ImCH
+    global ImPar
+    # global ImCH.CH2
+    # global ImCH.CH3
+    # global ImCH.CH4
     global CH1
     global CH1
     stan = 0
@@ -87,9 +94,9 @@ def cykacz():
     global f_ch3
     global f_ch4
     global par
-    global resolution
-    global kierunek 
-    global oY
+    resolution = ImPar.res
+    # kierunek 
+    # global oY
     global linia
     # global old_linia
 
@@ -97,8 +104,8 @@ def cykacz():
         
         dxy = 2 * par['oxy'] / resolution
         
-        d1 = (x * dxy) + par['dx'] - (par['oxy'])
-        d2 = (y * dxy) + par['dy'] - (par['oxy'])
+        d1 = (ImPar.x * dxy) + par['dx'] - (par['oxy'])
+        d2 = (ImPar.y * dxy) + par['dy'] - (par['oxy'])
         
         dwf.FDwfAnalogOutNodeOffsetSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_double(d1))
         dwf.FDwfAnalogOutNodeOffsetSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
@@ -112,83 +119,80 @@ def cykacz():
         maks = nSamples
         marg = 0.1 * maks
 
-        # CH_2_img[y, x] = np.mean(f_ch2) 
+        # ImCH.CH2[y, ImPar.x] = np.mean(f_ch2) 
 
         if (par['scan'] == 't'):
             if (stan == 0):
-                kierunek = 0
-                x = x + 1
-                CH_1_img[y, x] = np.mean(f_ch1[int(marg):int(maks-marg)])
-                CH_2_img[y, x] = np.mean(f_ch2[int(marg):int(maks-marg)]) 
-                if (x == (resolution - 1)):
+                ImPar.dir = 0
+                ImPar.x = ImPar.x + 1
+                ImCH.CH1[ImPar.y, ImPar.x] = np.mean(f_ch1[int(marg):int(maks-marg)])
+                ImCH.CH2[ImPar.y, ImPar.x] = np.mean(f_ch2[int(marg):int(maks-marg)]) 
+                if (ImPar.x == (resolution - 1)):
                     stan = 1
                 
             elif (stan == 1):
-                x = x
+                ImPar.x = ImPar.x
                 stan = 2
-                # if (parametry['type'] == 'snake'):
-                # y = y + 1
+                # if (parametrImPar.y['tImPar.ype'] == 'snake'):
+                # ImPar.y = ImPar.y + 1
 
             elif (stan == 2):
-                kierunek = 1
-                CH_3_img[y, x] = np.mean(np.mean(f_ch1[int(marg):int(maks-marg)]))
-                CH_4_img[y, x] = np.mean(f_ch2[int(marg):int(maks-marg)]) 
-                x = x - 1
-                if (x == 0):
+                ImPar.dir = 1
+                ImCH.CH3[ImPar.y, ImPar.x] = np.mean(np.mean(f_ch1[int(marg):int(maks-marg)]))
+                ImCH.CH4[ImPar.y, ImPar.x] = np.mean(f_ch2[int(marg):int(maks-marg)]) 
+                ImPar.x = ImPar.x - 1
+                if (ImPar.x == 0):
                     stan = 3
                     
             elif (stan == 3):                 
-                x = x
-                y = y + 1
+                ImPar.x = ImPar.x
+                ImPar.y = ImPar.y + 1
                 stan = 0
-                oY = oY + 1
+                ImPar.oY = ImPar.oY + 1
                 linia = linia + 1
                 # print(linia, old_linia)
                 # Tutaj dodac kalkulacje srredniej dla X,Y dla kazdego kanału i zamiana 0 na srednia z poprzedniej linii pomiarowej
 
         else:
-            kierunek = 0
+            ImPar.dir = 0
             stan = 0
-            x = 0
-            y = 0
-            oY = 0
+            ImPar.x = 0
+            ImPar.y = 0
+            ImPar.oY = 0
             linia = 0
             # oldLinia = 0
-            CH_1_img = np.zeros((resolution, resolution))
-            CH_2_img = np.zeros((resolution, resolution))
-            CH_3_img = np.zeros((resolution, resolution))
-            CH_4_img = np.zeros((resolution, resolution))
+            ImCH.CH1 = np.zeros((resolution, resolution))
+            ImCH.CH2 = np.zeros((resolution, resolution))
+            ImCH.CH3 = np.zeros((resolution, resolution))
+            ImCH.CH4 = np.zeros((resolution, resolution))
         
-        if ((linia > 0) and (linia < resolution) and (par['int'] == 't') ): #oldLinia  and (oldLinia < linia)
-            A = CH_1_img[linia,0:resolution]
-            B = CH_2_img[linia,0:resolution]
+        if ((linia > 0) and (linia < resolution) and (par['int'] == 't') ):
+            A = ImCH.CH1[linia,0:resolution]
+            B = ImCH.CH2[linia,0:resolution]
 
             # (c*np.mean(w)+(np.max(w)-np.min(w))-abs((np.min(w))) 
-            # CH_1_img[0:resolution,(linia+1):resolution] = np.mean(A)
+            # ImCH.CH1[0:resolution,(linia+1):resolution] = np.mean(A)
             #np.random.rand(((resolution - (linia+1)),resolution)) *  (np.mean(A)+(np.max(A)-np.min(A))-abs((np.min(A))))
-            CH_1_img[(linia+1):resolution,0:resolution] = np.resize(A,((resolution - (linia+1)),resolution)) 
-            CH_2_img[(linia+1):resolution,0:resolution] = np.resize(B,((resolution - (linia+1)),resolution)) 
-            A = CH_3_img[linia,0:resolution]
-            B = CH_4_img[linia,0:resolution]
-            CH_3_img[(linia+1):resolution,0:resolution] = np.resize(A,((resolution - (linia+1)),resolution)) 
-            CH_4_img[(linia+1):resolution,0:resolution] = np.resize(B,((resolution - (linia+1)),resolution)) 
+            ImCH.CH1[(linia+1):resolution,0:resolution] = np.resize(A,((resolution - (linia+1)),resolution)) 
+            ImCH.CH2[(linia+1):resolution,0:resolution] = np.resize(B,((resolution - (linia+1)),resolution)) 
+            A = ImCH.CH3[linia,0:resolution]
+            B = ImCH.CH4[linia,0:resolution]
+            ImCH.CH3[(linia+1):resolution,0:resolution] = np.resize(A,((resolution - (linia+1)),resolution)) 
+            ImCH.CH4[(linia+1):resolution,0:resolution] = np.resize(B,((resolution - (linia+1)),resolution)) 
             # oldLinia = linia
         else:
-            CH_1_img[(linia+1):resolution,0:resolution] = 0 
-            CH_2_img[(linia+1):resolution,0:resolution] = 0
-            CH_3_img[(linia+1):resolution,0:resolution] = 0
-            CH_4_img[(linia+1):resolution,0:resolution] = 0
-
-
-        #men(CH1.value) # np.random.rand(1)
-        # print(CH1)
-        #sleep(0.02)
+            ImCH.CH1[(linia+1):resolution,0:resolution] = 0 
+            ImCH.CH2[(linia+1):resolution,0:resolution] = 0
+            ImCH.CH3[(linia+1):resolution,0:resolution] = 0
+            ImCH.CH4[(linia+1):resolution,0:resolution] = 0
+        #time.sleep(0.02)
 
 #print(DWF version
 def check_device():
     version = create_string_buffer(16)
     dwf.FDwfGetVersion(version)
     print("DWF Version: "+str(version.value))
+
 
 #open device
 def open_device():
@@ -223,7 +227,7 @@ def open_device():
     dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(0), AnalogOutNodeCarrier, funcDC)
     dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_bool(True))
     dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(1), AnalogOutNodeCarrier, funcDC)
-    sleep(2)
+    time.sleep(2)
 
 def start_osciloscope():
     # while(par['exit'] == 't'):
@@ -242,8 +246,7 @@ def start_osciloscope():
     while cSamples < nSamples:
         dwf.FDwfAnalogInStatus(hdwf, c_int(1), byref(sts))
         if cSamples == 0 and (sts == DwfStateConfig or sts == DwfStatePrefill or sts == DwfStateArmed) :
-            # Acquisition not yet started.
-            continue
+            continue # Acquisition not yet started.
 
         dwf.FDwfAnalogInStatusRecord(hdwf, byref(cAvailable), byref(cLost), byref(cCorrupted))
         
@@ -264,22 +267,17 @@ def start_osciloscope():
         dwf.FDwfAnalogInStatusData(hdwf, c_int(1), byref(CH2, sizeof(c_double)*cSamples), cAvailable) # get channel 2 data
         cSamples += cAvailable.value
 
-    # print("Recording done")
     if fLost:
         print("Samples were lost! Reduce frequency")
     if fCorrupted:
         print("Samples could be corrupted! Reduce frequency")
-    # sleep(1)
+    # time.sleep(1)
 
 
 # animation function.  This is called sequentially
 def update_pictures(i):
-    global CH_1_img
-    global CH_2_img
-    global CH_3_img
-    global CH_4_img
-    global kierunek 
-    global oY
+    resolution = ImPar.res
+
     ax1.cla()
     ax1.set_title("CH 1 - TOPO L->P")
     ax2.cla()
@@ -288,14 +286,11 @@ def update_pictures(i):
     ax5.set_title("CH 1 - TOPO P->L")
     ax6.cla()
     ax6.set_title("CH 2 - ERROR P->L")
-    # np.ma.masked_less(data[i], 0)
-    # if( (kierunek == 0) or (par['scan'] == 'n')):
-    pos1 = ax1.imshow(CH_1_img,  cmap='Oranges', interpolation='none') 
-    pos2 = ax2.imshow(CH_2_img,  cmap='afmhot', interpolation='none')
-    # if( (kierunek == 1) or (par['scan'] == 'n')):
-    pos3 = ax5.imshow(CH_3_img,  cmap='Oranges', interpolation='none') 
-    pos4 = ax6.imshow(CH_4_img,  cmap='afmhot', interpolation='none')
 
+    pos1 = ax1.imshow(ImCH.CH1,  cmap='Oranges', interpolation='none') 
+    pos2 = ax2.imshow(ImCH.CH2,  cmap='afmhot', interpolation='none')
+    pos3 = ax5.imshow(ImCH.CH3,  cmap='Oranges', interpolation='none') 
+    pos4 = ax6.imshow(ImCH.CH4,  cmap='afmhot', interpolation='none')
     
     x = np.linspace(0, nSamples, nSamples)
     ox = np.linspace(1,resolution,resolution)
@@ -311,17 +306,16 @@ def update_pictures(i):
             if(par['scan'] == 'n'):
                 ax3.plot(x, CH1, color="C1")
             else:
-                if(kierunek == 0):
-                    if(oY == 0):
-                        ax3.plot(ox[1:resolution], CH_1_img[oY,1:resolution], color="C1")
+                if(ImPar.dir == 0):
+                    if(ImPar.oY == 0):
+                        ax3.plot(ox[1:resolution], ImCH.CH1[ImPar.oY,1:resolution], color="C1")
                     else:
-                        ax3.plot(ox[1:resolution], CH_1_img[oY,1:resolution], ox[1:resolution], CH_1_img[(oY-1),1:resolution], color="C1")
+                        ax3.plot(ox[1:resolution], ImCH.CH1[ImPar.oY,1:resolution], ox[1:resolution], ImCH.CH1[(ImPar.oY-1),1:resolution], color="C1")
                 else:
-                    if(oY == 0):
-                        ax3.plot(ox[1:resolution], CH_3_img[oY,1:resolution], color="C1")
+                    if(ImPar.oY == 0):
+                        ax3.plot(ox[1:resolution], ImCH.CH3[ImPar.oY,1:resolution], color="C1")
                     else:
-                        ax3.plot(ox[1:resolution], CH_3_img[oY,1:resolution], ox[1:resolution], CH_3_img[(oY-1),1:resolution], color="C1")
-
+                        ax3.plot(ox[1:resolution], ImCH.CH3[ImPar.oY,1:resolution], ox[1:resolution], ImCH.CH3[(ImPar.oY-1),1:resolution], color="C1")
     else:
         if (par['adc2'] == 't'):
             ax4.clear()
@@ -334,16 +328,16 @@ def update_pictures(i):
             if(par['scan'] == 'n'):
                 ax4.plot(x, CH2, color="C0")
             else:
-                if(kierunek == 0):
-                    if(oY == 0):
-                        ax4.plot(ox[1:resolution], CH_2_img[oY,1:resolution], color="C0")
+                if(ImPar.dir == 0):
+                    if(ImPar.oY == 0):
+                        ax4.plot(ox[1:resolution], ImCH.CH2[ImPar.oY,1:resolution], color="C0")
                     else:
-                        ax4.plot(ox[1:resolution], CH_2_img[oY,1:resolution], ox[1:resolution], CH_2_img[(oY-1),1:resolution], color="C0")
+                        ax4.plot(ox[1:resolution], ImCH.CH2[ImPar.oY,1:resolution], ox[1:resolution], ImCH.CH2[(ImPar.oY-1),1:resolution], color="C0")
                 else:
-                    if(oY == 0):
-                        ax4.plot(ox[1:resolution], CH_4_img[oY,1:resolution], color="C0")
+                    if(ImPar.oY == 0):
+                        ax4.plot(ox[1:resolution], ImCH.CH4[ImPar.oY,1:resolution], color="C0")
                     else:
-                        ax4.plot(ox[1:resolution], CH_4_img[oY,1:resolution], ox[1:resolution], CH_4_img[(oY-1),1:resolution], color="C0")
+                        ax4.plot(ox[1:resolution], ImCH.CH4[ImPar.oY,1:resolution], ox[1:resolution], ImCH.CH4[(ImPar.oY-1),1:resolution], color="C0")
    
 
 def wprowadz_par_do_zmiennej(nazwa, wartosc):
@@ -369,21 +363,21 @@ def obsluga_komend():
         if(par['save'] == 't'):
             par['save'] = 'n'
             save_files()
-            print(par)
-            
-        sleep(0.2)
+            print(par)    
+        time.sleep(0.2)
+
 
 def save_files():
     named_tuple = time.localtime()
     time_string = time.strftime("%Y-%m-%d_%H-%M-%S", named_tuple)
-    np.savetxt( 'data\CH1_T'+ time_string +'.txt', CH_1_img, fmt="%10.5f", delimiter=";")
-    np.savetxt( 'data\CH1_E'+ time_string +'.txt', CH_2_img, fmt="%10.5f", delimiter=";")
-    np.savetxt( 'data\CH2_T'+ time_string +'.txt', CH_3_img, fmt="%10.5f", delimiter=";")
-    np.savetxt( 'data\CH2_E'+ time_string +'.txt', CH_4_img, fmt="%10.5f", delimiter=";")
-    matplotlib.image.imsave('data\CH1_T'+ time_string + '.png', CH_1_img)
-    matplotlib.image.imsave('data\CH1_E'+ time_string + '.png', CH_2_img)
-    matplotlib.image.imsave('data\CH2_T'+ time_string + '.png', CH_3_img)
-    matplotlib.image.imsave('data\CH2_E'+ time_string + '.png', CH_4_img)
+    np.savetxt( 'data\\CH1_T'+ time_string +'.txt', ImCH.CH1, fmt="%10.5f", delimiter=";")
+    np.savetxt( 'data\\CH1_E'+ time_string +'.txt', ImCH.CH2, fmt="%10.5f", delimiter=";")
+    np.savetxt( 'data\\CH2_T'+ time_string +'.txt', ImCH.CH3, fmt="%10.5f", delimiter=";")
+    np.savetxt( 'data\\CH2_E'+ time_string +'.txt', ImCH.CH4, fmt="%10.5f", delimiter=";")
+    matplotlib.image.imsave('data\CH1_T'+ time_string + '.png', ImCH.CH1)
+    matplotlib.image.imsave('data\CH1_E'+ time_string + '.png', ImCH.CH2)
+    matplotlib.image.imsave('data\CH2_T'+ time_string + '.png', ImCH.CH3)
+    matplotlib.image.imsave('data\CH2_E'+ time_string + '.png', ImCH.CH4)
     print('ALL files saved: ' + time_string + ':)')
 
 
@@ -402,12 +396,12 @@ def on_close(event):
         print("Zamykanie watku t2")
     print('Closed Figure!')
 
+
 if __name__ == "__main__":
 
     check_device()
     open_device()
 
-    # obsluga_komend()
     t1 = threading.Thread(target=obsluga_komend, args=())
     t2 = threading.Thread(target=cykacz, args=())
   
@@ -416,7 +410,6 @@ if __name__ == "__main__":
 
     fig.canvas.mpl_connect('close_event', on_close)
 
-    # if (par['exit'] == 't'):
     ani = animation.FuncAnimation(fig, update_pictures, frames=50, interval=20)
     plt.show()
 
