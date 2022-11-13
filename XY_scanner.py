@@ -3,6 +3,7 @@ import matplotlib
 import threading
 import time
 import numpy as np
+import os
 
 from ctypes import *
 from dwfconstants import *
@@ -11,41 +12,49 @@ from matplotlib import animation
 from dataclasses import dataclass
 
 np.random.seed(19680801)
+CONST_MENU_REPEAT = 10
 #declare ctype variables
 hdwf = c_int()
 sts = c_byte()
 
+LINE_UP = '\033[1A'
+LINE_CLEAR = '\x1b[2K'
+width, height = os.get_terminal_size()
+
+
 @dataclass
 class ImCont:
-    res = 200
+    resolution = 200
     dir = 0
     x = 0
     y = 0
     oY = 0
-    Sample = 200
-    hzAcq = c_double(480000)
+    sample = 200
+    hzAcq = c_double(450000)
     cAvailable = c_int()
     cLost = c_int()
     cCorrupted = c_int()
     fLost = 0
     fCorrupted = 0
+    dwfVersion = ""
+    logError = ""
+
 
 @dataclass
 class ImCH:
-    CH1: float = np.zeros((ImCont.res, ImCont.res))
-    CH2: float = np.zeros((ImCont.res, ImCont.res))
-    CH3: float = np.zeros((ImCont.res, ImCont.res))
-    CH4: float = np.zeros((ImCont.res, ImCont.res))
+    CH1: float = np.zeros((ImCont.resolution, ImCont.resolution))
+    CH2: float = np.zeros((ImCont.resolution, ImCont.resolution))
+    CH3: float = np.zeros((ImCont.resolution, ImCont.resolution))
+    CH4: float = np.zeros((ImCont.resolution, ImCont.resolution))
     line: int = 0
-    data = np.random.random((ImCont.res, ImCont.res, ImCont.res))
 
 
 @dataclass
 class ScanData:
-    DataCH1: c_double = (c_double*ImCont.Sample)()
-    DataCH2: c_double = (c_double*ImCont.Sample)()
-    f_ch1 = np.arange(ImCont.Sample, dtype=float)
-    f_ch2 = np.arange(ImCont.Sample, dtype=float)
+    DataCH1: c_double = (c_double*ImCont.sample)()
+    DataCH2: c_double = (c_double*ImCont.sample)()
+    f_ch1 = np.arange(ImCont.sample, dtype=float)
+    f_ch2 = np.arange(ImCont.sample, dtype=float)
 
 
 par = { 'oxy' : 5.0, 'dx' : 0.0, 'dy' : 0.0, 
@@ -74,13 +83,14 @@ ax6 = fig.add_subplot(gs[0, 3])
 ax3 = fig.add_subplot(gs[1, :], label="1")
 ax4 = fig.add_subplot(gs[1, :], label="2", frame_on=False)
 
+
 def cykacz():
     global ImCH
     global ImCont
     global ScanData
     stan = 0
 
-    resolution = ImCont.res
+    resolution = ImCont.resolution
 
     while (par['exit'] == 't'):
         
@@ -94,11 +104,11 @@ def cykacz():
         
         start_osciloscope()
 
-        for i in range(ImCont.Sample):
+        for i in range(ImCont.sample):
             ScanData.f_ch1[i] = float(ScanData.DataCH1[i] * par['range'])
             ScanData.f_ch2[i] = float(ScanData.DataCH2[i] * par['range'])
         
-        maks = ImCont.Sample
+        maks = ImCont.sample
         marg = 0.1 * maks
 
         # ImCH.CH2[y, ImCont.x] = np.mean(ScanData.f_ch2) 
@@ -166,12 +176,11 @@ def cykacz():
             ImCH.CH3[(ImCH.line+1):resolution,0:resolution] = 0
             ImCH.CH4[(ImCH.line+1):resolution,0:resolution] = 0
         #time.sleep(0.02)
-
 #print(DWF version
 def check_device():
     version = create_string_buffer(16)
     dwf.FDwfGetVersion(version)
-    print("DWF Version: "+str(version.value))
+    ImCont.dwfVersion = " " + str(version.value)
 
 
 #open device
@@ -190,9 +199,9 @@ def open_device():
     dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(0), c_bool(True))
     dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(1), c_bool(True))
     dwf.FDwfAnalogInAcquisitionModeSet(hdwf, acqmodeRecord)
-    # dwf.FDwfAnalogInBufferSizeSet(hdwf, c_int(ImCont.Sample))
+    # dwf.FDwfAnalogInBufferSizeSet(hdwf, c_int(ImCont.sample))
     dwf.FDwfAnalogInFrequencySet(hdwf, ImCont.hzAcq)
-    dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ImCont.Sample/ImCont.hzAcq.value) - 1)) 
+    dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ImCont.sample/ImCont.hzAcq.value) - 1)) 
 
     dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_bool(True))
     dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(0), AnalogOutNodeCarrier, funcDC)
@@ -203,18 +212,19 @@ def open_device():
 
 def start_osciloscope():
     global ImCont
-    cSamples = 0
+    global par
+    csamples = 0
 
     dwf.FDwfAnalogInConfigure(hdwf, c_int(0), c_int(1))
 
-    while cSamples < ImCont.Sample:
+    while csamples < ImCont.sample:
         dwf.FDwfAnalogInStatus(hdwf, c_int(1), byref(sts))
-        if cSamples == 0 and (sts == DwfStateConfig or sts == DwfStatePrefill or sts == DwfStateArmed) :
+        if csamples == 0 and (sts == DwfStateConfig or sts == DwfStatePrefill or sts == DwfStateArmed) :
             continue # Acquisition not yet started.
 
         dwf.FDwfAnalogInStatusRecord(hdwf, byref(ImCont.cAvailable), byref(ImCont.cLost), byref(ImCont.cCorrupted))
         
-        cSamples += ImCont.cLost.value
+        csamples += ImCont.cLost.value
 
         if ImCont.cLost.value :
             ImCont.fLost = 1
@@ -224,24 +234,25 @@ def start_osciloscope():
         if ImCont.cAvailable.value==0 :
             continue
 
-        if cSamples+ImCont.cAvailable.value > ImCont.Sample :
-            ImCont.cAvailable = c_int(ImCont.Sample-cSamples)
+        if csamples+ImCont.cAvailable.value > ImCont.sample :
+            ImCont.cAvailable = c_int(ImCont.sample-csamples)
         
-        dwf.FDwfAnalogInStatusData(hdwf, c_int(0), byref(ScanData.DataCH1, sizeof(c_double)*cSamples), ImCont.cAvailable) # get channel 1 data
-        dwf.FDwfAnalogInStatusData(hdwf, c_int(1), byref(ScanData.DataCH2, sizeof(c_double)*cSamples), ImCont.cAvailable) # get channel 2 data
-        cSamples += ImCont.cAvailable.value
+        dwf.FDwfAnalogInStatusData(hdwf, c_int(0), byref(ScanData.DataCH1, sizeof(c_double)*csamples), ImCont.cAvailable) # get channel 1 data
+        dwf.FDwfAnalogInStatusData(hdwf, c_int(1), byref(ScanData.DataCH2, sizeof(c_double)*csamples), ImCont.cAvailable) # get channel 2 data
+        csamples += ImCont.cAvailable.value
 
     if (par['log'] == 't'):
         if ImCont.fLost:
-            print("Samples were lost! Reduce frequency")
+            ImCont.logError = "Samples were lost! Reduce frequency"
+            par['log'] = 'n'
         if ImCont.fCorrupted:
-            print("Samples could be corrupted! Reduce frequency")
-    # time.sleep(1)
+            ImCont.logError = "Samples could be corrupted! Reduce frequency"
+            par['log'] = 'n'
 
 
 # animation function.  This is called sequentially
 def update_pictures(i):
-    resolution = ImCont.res
+    resolution = ImCont.resolution
 
     ax1.cla()
     ax1.set_title("CH 1 - TOPO L->P")
@@ -257,7 +268,7 @@ def update_pictures(i):
     ax5.imshow(ImCH.CH3,  cmap='Oranges', interpolation='none') 
     ax6.imshow(ImCH.CH4,  cmap='afmhot', interpolation='none')
     
-    x = np.linspace(0, ImCont.Sample, ImCont.Sample)
+    x = np.linspace(0, ImCont.sample, ImCont.sample)
     ox = np.linspace(1,resolution,resolution)
    
     if(i % 2 == 1):
@@ -283,7 +294,7 @@ def update_pictures(i):
         if (par['adc2'] == 't'):
             ax4.clear()
             ax4.yaxis.tick_right()
-            ax4.set_xlabel('Samples', color="C0") 
+            ax4.set_xlabel('Samples', color="C0")
             ax4.set_ylabel('CH 2 - ERROR', color="C0")       
             ax4.yaxis.set_label_position('right') 
             ax4.tick_params(axis='x', colors="C0")
@@ -303,7 +314,7 @@ def update_pictures(i):
                         ax4.plot(ox[1:resolution], ImCH.CH4[ImCont.oY,1:resolution], ox[1:resolution], ImCH.CH4[(ImCont.oY-1),1:resolution], color="C0")
    
 
-def wprowadz_par_do_zmiennej(nazwa, wartosc):
+def push_command_to_par(nazwa, wartosc):
     global par
     try:
         par[nazwa] = float(wartosc)
@@ -311,23 +322,61 @@ def wprowadz_par_do_zmiennej(nazwa, wartosc):
         par[nazwa] = wartosc
 
 
+def menu_header():
+    txt = "XY Scanner - STM / AFM"
+    header = txt.center(width)
+    print("="*width)
+    print(header,)
+    print("="*width)
+    
+
+def menu_parameters():
+    print ("")
+    print("Status: \t", ImCont.resolution)
+    print("Resolution: \t", ImCont.resolution)
+    print("Scan sample: \t", ImCont.sample)
+    print("Scan freq: \t", ImCont.hzAcq.value)
+    print("="*width)
+    print("DWF Ver: \t" +ImCont.dwfVersion)
+    print("Log: \t\t", ImCont.logError)
+    print("-"*width)
+
+
+def menu_param_revrite(revrite):
+    for i in range (revrite):
+            print(LINE_UP, end='\r')
+
+
+def menu_end():
+    print("."*width)
+    txt = "Exit program - Come back soon! :-) "
+    goodby_txt = txt.center(width)
+    print(goodby_txt)
+    print("."*width)
+
+
 def obsluga_komend():
     global par
     while(par['exit'] == 't'):
-        wej = input("Podaj parametr: ")
+
+        menu_parameters()
+        print(" " * width, end='\r')
+        wej = input("Get param: \t ")
+        menu_param_revrite(CONST_MENU_REPEAT)
+            
         lista = wej.split()
         if(lista[0].lower() in par):
-            wprowadz_par_do_zmiennej(lista[0].lower(), lista[1])
-            print('Wprowadzono parametr')
+            push_command_to_par(lista[0].lower(), lista[1])
         else:
-            print('Nieprawidlowy parametr')
+            ImCont.logError = "Incorrectly entered command!"
+        
 
-        print(par)
         if(par['save'] == 't'):
             par['save'] = 'n'
             save_files()
-            print(par)    
+
         time.sleep(0.2)
+    plt.close()
 
 
 def save_files():
@@ -341,29 +390,34 @@ def save_files():
     matplotlib.image.imsave('data\CH1_E'+ time_string + '.png', ImCH.CH2)
     matplotlib.image.imsave('data\CH2_T'+ time_string + '.png', ImCH.CH3)
     matplotlib.image.imsave('data\CH2_E'+ time_string + '.png', ImCH.CH4)
-    print('ALL files saved: ' + time_string + ':)')
+    # print('ALL files saved: ' + time_string + ' ]:-> ')
+    ImCont.logError = 'ALL files saved: ' + time_string + ' ]:-> '
 
 
 def on_close(event):
-    print('Closed Figure!')    
     save_files()
+    menu_parameters()
+    end_threads()
 
+
+def end_threads():
     global par
     par['exit'] = 'n'
-
     if(t1.is_alive()):
         t1.join()
-        print("Zamykanie watku t1")
+        # print("Zamykanie watku t1")
     if(t2.is_alive()):
         t2.join()
-        print("Zamykanie watku t2")
-    print('Closed Figure!')
+        # print("Zamykanie watku t2")
 
 
 if __name__ == "__main__":
 
+    os.system('cls' if os.name == 'nt' else 'clear')
+
     check_device()
     open_device()
+    menu_header()
 
     t1 = threading.Thread(target=obsluga_komend, args=())
     t2 = threading.Thread(target=cykacz, args=())
@@ -372,18 +426,9 @@ if __name__ == "__main__":
     t2.start()
 
     fig.canvas.mpl_connect('close_event', on_close)
-
     ani = animation.FuncAnimation(fig, update_pictures, frames=50, interval=20)
+    
     plt.show()
 
-    if(t1.is_alive()):
-        par['exit'] = 'n'
-        t1.join()
-        print("Zamykanie watku t1")
-    if(t2.is_alive()):
-        par['exit'] = 'n'
-        t2.join()
-        print("Zamykanie watku t2")
-  
-    print("Done!")
-    
+    end_threads()
+    menu_end()
