@@ -30,7 +30,7 @@ class ImCont:
     y = 0
     oY = 0
     sample = 200
-    hzAcq = c_double(450000)
+    hzAcq = [c_double(450000), c_double(450000)]
     cAvailable = c_int()
     cLost = c_int()
     cCorrupted = c_int()
@@ -60,8 +60,10 @@ class ScanData:
 par = { 'oxy' : 5.0, 'dx' : 0.0, 'dy' : 0.0, 
         'adc1' : 't', 'adc2' : 't', 'dac1' : 'n', 'dac2' : 'n',
         'range' : 1.0 , 'int' : 'n', 'scan' : 'n', 'save' : 'n',
-        'log' : 't',
+        'log' : 'n', 
         'exit' : 't'}
+
+com = ['sample', 'freq']
 
 
 if sys.platform.startswith("win"):
@@ -103,6 +105,12 @@ def cykacz():
         dwf.FDwfAnalogOutNodeOffsetSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
         
         start_osciloscope()
+
+        if(ImCont.hzAcq[0] != ImCont.hzAcq[1]):
+            ImCont.hzAcq[1] = ImCont.hzAcq[0]
+            dwf.FDwfAnalogInFrequencySet(hdwf, ImCont.hzAcq[0])
+            dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ImCont.sample/ImCont.hzAcq[0].value) - 1))
+            ImCont.logError = "Data frequency success updated in device"
 
         for i in range(ImCont.sample):
             ScanData.f_ch1[i] = float(ScanData.DataCH1[i] * par['range'])
@@ -176,6 +184,8 @@ def cykacz():
             ImCH.CH3[(ImCH.line+1):resolution,0:resolution] = 0
             ImCH.CH4[(ImCH.line+1):resolution,0:resolution] = 0
         #time.sleep(0.02)
+
+        
 #print(DWF version
 def check_device():
     version = create_string_buffer(16)
@@ -200,8 +210,8 @@ def open_device():
     dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(1), c_bool(True))
     dwf.FDwfAnalogInAcquisitionModeSet(hdwf, acqmodeRecord)
     # dwf.FDwfAnalogInBufferSizeSet(hdwf, c_int(ImCont.sample))
-    dwf.FDwfAnalogInFrequencySet(hdwf, ImCont.hzAcq)
-    dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ImCont.sample/ImCont.hzAcq.value) - 1)) 
+    dwf.FDwfAnalogInFrequencySet(hdwf, ImCont.hzAcq[0])
+    dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ImCont.sample/ImCont.hzAcq[0].value) - 1)) 
 
     dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_bool(True))
     dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(0), AnalogOutNodeCarrier, funcDC)
@@ -242,11 +252,12 @@ def start_osciloscope():
         csamples += ImCont.cAvailable.value
 
     if (par['log'] == 't'):
+        local_time = "[" + time.strftime("%H:%M:%S",time.localtime()) + "] "
         if ImCont.fLost:
-            ImCont.logError = "Samples were lost! Reduce frequency"
+            ImCont.logError = local_time + "Samples were lost! Reduce frequency"
             par['log'] = 'n'
         if ImCont.fCorrupted:
-            ImCont.logError = "Samples could be corrupted! Reduce frequency"
+            ImCont.logError = local_time + "Samples could be corrupted! Reduce frequency"
             par['log'] = 'n'
 
 
@@ -314,12 +325,26 @@ def update_pictures(i):
                         ax4.plot(ox[1:resolution], ImCH.CH4[ImCont.oY,1:resolution], ox[1:resolution], ImCH.CH4[(ImCont.oY-1),1:resolution], color="C0")
    
 
-def push_command_to_par(nazwa, wartosc):
+def update_values_in_datas(command, value):
     global par
+    global ImCont
+    global ScanData
     try:
-        par[nazwa] = float(wartosc)
+        par[command] = float(value)
     except  ValueError:
-        par[nazwa] = wartosc
+        par[command] = value
+    
+    if(command == 'sample' ):
+        dana = int(value) % 20000
+        ImCont.sample = dana
+        ScanData.DataCH1 = (c_double*ImCont.sample)()
+        ScanData.DataCH2= (c_double*ImCont.sample)()
+        ScanData.f_ch1 = np.arange(ImCont.sample, dtype=float)
+        ScanData.f_ch2 = np.arange(ImCont.sample, dtype=float)
+    
+    if(command == 'freq' ):
+        dana = (int(value) % 2000) * 1000
+        ImCont.hzAcq[0] = c_double(dana)
 
 
 def menu_header():
@@ -332,13 +357,13 @@ def menu_header():
 
 def menu_parameters():
     print ("")
-    print("Status: \t", ImCont.resolution)
-    print("Resolution: \t", ImCont.resolution)
-    print("Scan sample: \t", ImCont.sample)
-    print("Scan freq: \t", ImCont.hzAcq.value)
+    print("Status: \t", ImCont.resolution, "     ")
+    print("Resolution: \t", ImCont.resolution, "     ")
+    print("Scan sample: \t", ImCont.sample, "     ")
+    print("Scan freq: \t", ImCont.hzAcq[0].value, "     ")
     print("="*width)
-    print("DWF Ver: \t" +ImCont.dwfVersion)
-    print("Log: \t\t", ImCont.logError)
+    print("DWF Ver: \t" +ImCont.dwfVersion, "     ")
+    print("Log: \t\t", ImCont.logError, "     ")
     print("-"*width)
 
 
@@ -348,11 +373,11 @@ def menu_param_revrite(revrite):
 
 
 def menu_end():
-    print("."*width)
+    print("-"*width)
     txt = "Exit program - Come back soon! :-) "
     goodby_txt = txt.center(width)
     print(goodby_txt)
-    print("."*width)
+    print("-"*width)
 
 
 def obsluga_komend():
@@ -365,12 +390,13 @@ def obsluga_komend():
         menu_param_revrite(CONST_MENU_REPEAT)
             
         lista = wej.split()
-        if(lista[0].lower() in par):
-            push_command_to_par(lista[0].lower(), lista[1])
+        if((lista[0].lower() in par) or (lista[0].lower() in com) ):
+            update_values_in_datas(lista[0].lower(), lista[1])
+            txt = "Value updated"
+            ImCont.logError = txt + (" " * 5)
         else:
             ImCont.logError = "Incorrectly entered command!"
         
-
         if(par['save'] == 't'):
             par['save'] = 'n'
             save_files()

@@ -19,4 +19,10 @@ The control is carried out via the terminal console. By executing the basic comm
 * Real-time view of: Topography and Error Channels
 * Save the result for each channel separately (*.txt and *.png)
   
+## Basic concept
+
+The basic concept of the *XY surface scanner* and the basic parameters are shown below. 
+
+![Basic_concept_of_image_scan](./doc/images/basic_concept_of_surface_scanner.png "www oooo")
+*Basic concept a) surface image and b) waveform for a single pixel image*
 
