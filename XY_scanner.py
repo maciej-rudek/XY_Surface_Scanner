@@ -29,7 +29,7 @@ class ImCont:
     x = 0
     y = 0
     oY = 0
-    sample = 200
+    sample = 10000
     hzAcq = [c_double(450000), c_double(450000)]
     cAvailable = c_int()
     cLost = c_int()
@@ -57,7 +57,7 @@ class ScanData:
     f_ch2 = np.arange(ImCont.sample, dtype=float)
 
 
-par = { 'oxy' : 5.0, 'dx' : 0.0, 'dy' : 0.0, 
+par = { 'oxy' : 3.0, 'dx' : 0.0, 'dy' : 0.0, 
         'adc1' : 't', 'adc2' : 't', 'dac1' : 'n', 'dac2' : 'n',
         'range' : 1.0 , 'int' : 'n', 'scan' : 'n', 'save' : 'n',
         'log' : 'n', 
