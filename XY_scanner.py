@@ -9,7 +9,8 @@ from ctypes import *
 from dwfconstants import *
 from matplotlib import pyplot as plt
 from matplotlib import animation
-from dataclasses import dataclass
+
+from scan_data.scan_data import ImCont, ImCH, ScanData, DwfData
 
 np.random.seed(19680801)
 CONST_MENU_REPEAT = 10
@@ -20,42 +21,6 @@ sts = c_byte()
 LINE_UP = '\033[1A'
 LINE_CLEAR = '\x1b[2K'
 width, height = os.get_terminal_size()
-
-
-@dataclass
-class ImCont:
-    resolution = 200
-    dir = 0
-    x = 0
-    y = 0
-    oY = 0
-    sample = 10000
-    hzAcq = [c_double(450000), c_double(450000)]
-    cAvailable = c_int()
-    cLost = c_int()
-    cCorrupted = c_int()
-    fLost = 0
-    fCorrupted = 0
-    dwfVersion = ""
-    logError = ""
-
-
-@dataclass
-class ImCH:
-    CH1: float = np.zeros((ImCont.resolution, ImCont.resolution))
-    CH2: float = np.zeros((ImCont.resolution, ImCont.resolution))
-    CH3: float = np.zeros((ImCont.resolution, ImCont.resolution))
-    CH4: float = np.zeros((ImCont.resolution, ImCont.resolution))
-    line: int = 0
-
-
-@dataclass
-class ScanData:
-    DataCH1: c_double = (c_double*ImCont.sample)()
-    DataCH2: c_double = (c_double*ImCont.sample)()
-    f_ch1 = np.arange(ImCont.sample, dtype=float)
-    f_ch2 = np.arange(ImCont.sample, dtype=float)
-
 
 par = { 'oxy' : 3.0, 'dx' : 0.0, 'dy' : 0.0, 
         'adc1' : 't', 'adc2' : 't', 'dac1' : 'n', 'dac2' : 'n',
@@ -106,11 +71,11 @@ def cykacz():
         
         start_osciloscope()
 
-        if(ImCont.hzAcq[0] != ImCont.hzAcq[1]):
-            ImCont.hzAcq[1] = ImCont.hzAcq[0]
-            dwf.FDwfAnalogInFrequencySet(hdwf, ImCont.hzAcq[0])
-            dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ImCont.sample/ImCont.hzAcq[0].value) - 1))
-            ImCont.logError = "Data frequency success updated in device"
+        if(DwfData.hzAcq[0] != DwfData.hzAcq[1]):
+            DwfData.hzAcq[1] = DwfData.hzAcq[0]
+            dwf.FDwfAnalogInFrequencySet(hdwf, DwfData.hzAcq[0])
+            dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ImCont.sample/DwfData.hzAcq[0].value) - 1))
+            DwfData.logError = "Data frequency success updated in device"
 
         for i in range(ImCont.sample):
             ScanData.f_ch1[i] = float(ScanData.DataCH1[i] * par['range'])
@@ -190,7 +155,7 @@ def cykacz():
 def check_device():
     version = create_string_buffer(16)
     dwf.FDwfGetVersion(version)
-    ImCont.dwfVersion = " " + str(version.value)
+    DwfData.version = " " + str(version.value)
 
 
 #open device
@@ -210,8 +175,8 @@ def open_device():
     dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(1), c_bool(True))
     dwf.FDwfAnalogInAcquisitionModeSet(hdwf, acqmodeRecord)
     # dwf.FDwfAnalogInBufferSizeSet(hdwf, c_int(ImCont.sample))
-    dwf.FDwfAnalogInFrequencySet(hdwf, ImCont.hzAcq[0])
-    dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ImCont.sample/ImCont.hzAcq[0].value) - 1)) 
+    dwf.FDwfAnalogInFrequencySet(hdwf, DwfData.hzAcq[0])
+    dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ImCont.sample/DwfData.hzAcq[0].value) - 1)) 
 
     dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_bool(True))
     dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(0), AnalogOutNodeCarrier, funcDC)
@@ -232,32 +197,32 @@ def start_osciloscope():
         if csamples == 0 and (sts == DwfStateConfig or sts == DwfStatePrefill or sts == DwfStateArmed) :
             continue # Acquisition not yet started.
 
-        dwf.FDwfAnalogInStatusRecord(hdwf, byref(ImCont.cAvailable), byref(ImCont.cLost), byref(ImCont.cCorrupted))
+        dwf.FDwfAnalogInStatusRecord(hdwf, byref(DwfData.cAvailable), byref(DwfData.cLost), byref(DwfData.cCorrupted))
         
-        csamples += ImCont.cLost.value
+        csamples += DwfData.cLost.value
 
-        if ImCont.cLost.value :
-            ImCont.fLost = 1
-        if ImCont.cCorrupted.value :
-            ImCont.fCorrupted = 1
+        if DwfData.cLost.value :
+            DwfData.fLost = 1
+        if DwfData.cCorrupted.value :
+            DwfData.fCorrupted = 1
 
-        if ImCont.cAvailable.value==0 :
+        if DwfData.cAvailable.value==0 :
             continue
 
-        if csamples+ImCont.cAvailable.value > ImCont.sample :
-            ImCont.cAvailable = c_int(ImCont.sample-csamples)
+        if csamples+DwfData.cAvailable.value > ImCont.sample :
+            DwfData.cAvailable = c_int(ImCont.sample-csamples)
         
-        dwf.FDwfAnalogInStatusData(hdwf, c_int(0), byref(ScanData.DataCH1, sizeof(c_double)*csamples), ImCont.cAvailable) # get channel 1 data
-        dwf.FDwfAnalogInStatusData(hdwf, c_int(1), byref(ScanData.DataCH2, sizeof(c_double)*csamples), ImCont.cAvailable) # get channel 2 data
-        csamples += ImCont.cAvailable.value
+        dwf.FDwfAnalogInStatusData(hdwf, c_int(0), byref(ScanData.DataCH1, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 1 data
+        dwf.FDwfAnalogInStatusData(hdwf, c_int(1), byref(ScanData.DataCH2, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 2 data
+        csamples += DwfData.cAvailable.value
 
     if (par['log'] == 't'):
         local_time = "[" + time.strftime("%H:%M:%S",time.localtime()) + "] "
-        if ImCont.fLost:
-            ImCont.logError = local_time + "Samples were lost! Reduce frequency"
+        if DwfData.fLost:
+            DwfData.logError = local_time + "Samples were lost! Reduce frequency"
             par['log'] = 'n'
-        if ImCont.fCorrupted:
-            ImCont.logError = local_time + "Samples could be corrupted! Reduce frequency"
+        if DwfData.fCorrupted:
+            DwfData.logError = local_time + "Samples could be corrupted! Reduce frequency"
             par['log'] = 'n'
 
 
@@ -344,7 +309,7 @@ def update_values_in_datas(command, value):
     
     if(command == 'freq' ):
         dana = (int(value) % 2000) * 1000
-        ImCont.hzAcq[0] = c_double(dana)
+        DwfData.hzAcq[0] = c_double(dana)
 
 
 def menu_header():
@@ -360,10 +325,10 @@ def menu_parameters():
     print("Status: \t", ImCont.resolution, "     ")
     print("Resolution: \t", ImCont.resolution, "     ")
     print("Scan sample: \t", ImCont.sample, "     ")
-    print("Scan freq: \t", ImCont.hzAcq[0].value, "     ")
+    print("Scan freq: \t", DwfData.hzAcq[0].value, "     ")
     print("="*width)
-    print("DWF Ver: \t" +ImCont.dwfVersion, "     ")
-    print("Log: \t\t", ImCont.logError, "     ")
+    print("DWF Ver: \t" + DwfData.version, "     ")
+    print("Log: \t\t", DwfData.logError, "     ")
     print("-"*width)
 
 
@@ -393,9 +358,9 @@ def obsluga_komend():
         if((lista[0].lower() in par) or (lista[0].lower() in com) ):
             update_values_in_datas(lista[0].lower(), lista[1])
             txt = "Value updated"
-            ImCont.logError = txt + (" " * 5)
+            DwfData.logError = txt + (" " * 5)
         else:
-            ImCont.logError = "Incorrectly entered command!"
+            DwfData.logError = "Incorrectly entered command!"
         
         if(par['save'] == 't'):
             par['save'] = 'n'
@@ -417,7 +382,7 @@ def save_files():
     matplotlib.image.imsave('data\CH2_T'+ time_string + '.png', ImCH.CH3)
     matplotlib.image.imsave('data\CH2_E'+ time_string + '.png', ImCH.CH4)
     # print('ALL files saved: ' + time_string + ' ]:-> ')
-    ImCont.logError = 'ALL files saved: ' + time_string + ' ]:-> '
+    DwfData.logError = 'ALL files saved: ' + time_string + ' ]:-> '
 
 
 def on_close(event):
