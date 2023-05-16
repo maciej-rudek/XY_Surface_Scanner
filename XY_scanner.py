@@ -10,7 +10,7 @@ from dwfconstants import *
 from matplotlib import pyplot as plt
 from matplotlib import animation
 
-from scan_data.scan_data import ImCont, ImCH, ScanData, DwfData
+from scan_data.scan_data import ImCont, PictureData, ScanSample, DwfData, ScanParam
 
 np.random.seed(19680801)
 CONST_MENU_REPEAT = 10
@@ -24,7 +24,7 @@ width, height = os.get_terminal_size()
 
 par = { 'oxy' : 3.0, 'dx' : 0.0, 'dy' : 0.0, 
         'adc1' : 't', 'adc2' : 't', 'dac1' : 'n', 'dac2' : 'n',
-        'range' : 1.0 , 'int' : 'n', 'scan' : 'n', 'save' : 'n',
+        'int' : 'n', 'scan' : 'n', 'save' : 'n',
         'log' : 'n', 
         'exit' : 't'}
 
@@ -52,12 +52,12 @@ ax4 = fig.add_subplot(gs[1, :], label="2", frame_on=False)
 
 
 def cykacz():
-    global ImCH
+    global PictureData
     global ImCont
-    global ScanData
+    global ScanSample
     stan = 0
 
-    resolution = ImCont.resolution
+    resolution = ScanParam.resolution
 
     while (par['exit'] == 't'):
         
@@ -74,24 +74,27 @@ def cykacz():
         if(DwfData.hzAcq[0] != DwfData.hzAcq[1]):
             DwfData.hzAcq[1] = DwfData.hzAcq[0]
             dwf.FDwfAnalogInFrequencySet(hdwf, DwfData.hzAcq[0])
-            dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ImCont.sample/DwfData.hzAcq[0].value) - 1))
+            dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ScanSample.sample/DwfData.hzAcq[0].value) - 1))
             DwfData.logError = "Data frequency success updated in device"
 
-        for i in range(ImCont.sample):
-            ScanData.f_ch1[i] = float(ScanData.DataCH1[i] * par['range'])
-            ScanData.f_ch2[i] = float(ScanData.DataCH2[i] * par['range'])
+        for i in range(ScanSample.sample):
+            ScanSample.f_ch1[i] = float(ScanSample.DataCH1[i])
+            ScanSample.f_ch2[i] = float(ScanSample.DataCH2[i])
         
-        maks = ImCont.sample
+        maks = ScanSample.sample
         marg = 0.1 * maks
+        
+        if(par['exit'] == 'n'):
+            break
 
-        # ImCH.CH2[y, ImCont.x] = np.mean(ScanData.f_ch2) 
+        # PictureData.CH2[y, ImCont.x] = np.mean(ScanSample.f_ch2) 
 
         if (par['scan'] == 't'):
             if (stan == 0):
                 ImCont.dir = 0
                 ImCont.x = ImCont.x + 1
-                ImCH.CH1[ImCont.y, ImCont.x] = np.mean(ScanData.f_ch1[int(marg):int(maks-marg)])
-                ImCH.CH2[ImCont.y, ImCont.x] = np.mean(ScanData.f_ch2[int(marg):int(maks-marg)]) 
+                PictureData.CH1[ImCont.y, ImCont.x] = np.mean(ScanSample.f_ch1[int(marg):int(maks-marg)])
+                PictureData.CH2[ImCont.y, ImCont.x] = np.mean(ScanSample.f_ch2[int(marg):int(maks-marg)]) 
                 if (ImCont.x == (resolution - 1)):
                     stan = 1
                 
@@ -103,8 +106,8 @@ def cykacz():
 
             elif (stan == 2):
                 ImCont.dir = 1
-                ImCH.CH3[ImCont.y, ImCont.x] = np.mean(np.mean(ScanData.f_ch1[int(marg):int(maks-marg)]))
-                ImCH.CH4[ImCont.y, ImCont.x] = np.mean(ScanData.f_ch2[int(marg):int(maks-marg)]) 
+                PictureData.CH3[ImCont.y, ImCont.x] = np.mean(np.mean(ScanSample.f_ch1[int(marg):int(maks-marg)]))
+                PictureData.CH4[ImCont.y, ImCont.x] = np.mean(ScanSample.f_ch2[int(marg):int(maks-marg)]) 
                 ImCont.x = ImCont.x - 1
                 if (ImCont.x == 0):
                     stan = 3
@@ -114,8 +117,8 @@ def cykacz():
                 ImCont.y = ImCont.y + 1
                 stan = 0
                 ImCont.oY = ImCont.oY + 1
-                ImCH.line = ImCH.line + 1
-                # print(ImCH.line, old_ImCH.line)
+                PictureData.line = PictureData.line + 1
+                # print(PictureData.line, old_PictureData.line)
                 # Tutaj dodac kalkulacje srredniej dla X,Y dla kazdego kanału i zamiana 0 na srednia z poprzedniej linii pomiarowej
 
         else:
@@ -124,30 +127,30 @@ def cykacz():
             ImCont.x = 0
             ImCont.y = 0
             ImCont.oY = 0
-            ImCH.line = 0
-            ImCH.CH1 = np.zeros((resolution, resolution))
-            ImCH.CH2 = np.zeros((resolution, resolution))
-            ImCH.CH3 = np.zeros((resolution, resolution))
-            ImCH.CH4 = np.zeros((resolution, resolution))
+            PictureData.line = 0
+            PictureData.CH1 = np.zeros((resolution, resolution))
+            PictureData.CH2 = np.zeros((resolution, resolution))
+            PictureData.CH3 = np.zeros((resolution, resolution))
+            PictureData.CH4 = np.zeros((resolution, resolution))
         
-        if ((ImCH.line > 0) and (ImCH.line < resolution) and (par['int'] == 't') ):
-            A = ImCH.CH1[ImCH.line,0:resolution]
-            B = ImCH.CH2[ImCH.line,0:resolution]
+        if ((PictureData.line > 0) and (PictureData.line < resolution) and (par['int'] == 't') ):
+            A = PictureData.CH1[PictureData.line,0:resolution]
+            B = PictureData.CH2[PictureData.line,0:resolution]
 
             # (c*np.mean(w)+(np.max(w)-np.min(w))-abs((np.min(w))) 
-            # ImCH.CH1[0:resolution,(ImCH.line+1):resolution] = np.mean(A)
-            #np.random.rand(((resolution - (ImCH.line+1)),resolution)) *  (np.mean(A)+(np.max(A)-np.min(A))-abs((np.min(A))))
-            ImCH.CH1[(ImCH.line+1):resolution,0:resolution] = np.resize(A,((resolution - (ImCH.line+1)),resolution)) 
-            ImCH.CH2[(ImCH.line+1):resolution,0:resolution] = np.resize(B,((resolution - (ImCH.line+1)),resolution)) 
-            A = ImCH.CH3[ImCH.line,0:resolution]
-            B = ImCH.CH4[ImCH.line,0:resolution]
-            ImCH.CH3[(ImCH.line+1):resolution,0:resolution] = np.resize(A,((resolution - (ImCH.line+1)),resolution)) 
-            ImCH.CH4[(ImCH.line+1):resolution,0:resolution] = np.resize(B,((resolution - (ImCH.line+1)),resolution)) 
+            # PictureData.CH1[0:resolution,(PictureData.line+1):resolution] = np.mean(A)
+            #np.random.rand(((resolution - (PictureData.line+1)),resolution)) *  (np.mean(A)+(np.max(A)-np.min(A))-abs((np.min(A))))
+            PictureData.CH1[(PictureData.line+1):resolution,0:resolution] = np.resize(A,((resolution - (PictureData.line+1)),resolution)) 
+            PictureData.CH2[(PictureData.line+1):resolution,0:resolution] = np.resize(B,((resolution - (PictureData.line+1)),resolution)) 
+            A = PictureData.CH3[PictureData.line,0:resolution]
+            B = PictureData.CH4[PictureData.line,0:resolution]
+            PictureData.CH3[(PictureData.line+1):resolution,0:resolution] = np.resize(A,((resolution - (PictureData.line+1)),resolution)) 
+            PictureData.CH4[(PictureData.line+1):resolution,0:resolution] = np.resize(B,((resolution - (PictureData.line+1)),resolution)) 
         else:
-            ImCH.CH1[(ImCH.line+1):resolution,0:resolution] = 0 
-            ImCH.CH2[(ImCH.line+1):resolution,0:resolution] = 0
-            ImCH.CH3[(ImCH.line+1):resolution,0:resolution] = 0
-            ImCH.CH4[(ImCH.line+1):resolution,0:resolution] = 0
+            PictureData.CH1[(PictureData.line+1):resolution,0:resolution] = 0 
+            PictureData.CH2[(PictureData.line+1):resolution,0:resolution] = 0
+            PictureData.CH3[(PictureData.line+1):resolution,0:resolution] = 0
+            PictureData.CH4[(PictureData.line+1):resolution,0:resolution] = 0
         #time.sleep(0.02)
 
         
@@ -156,34 +159,34 @@ def check_device():
     version = create_string_buffer(16)
     dwf.FDwfGetVersion(version)
     DwfData.version = " " + str(version.value)
+    print(DwfData.version)
 
 
 #open device
 def open_device():
-    print("Opening first device")
+    DwfData.status = "Opening first device"
     dwf.FDwfDeviceOpen(c_int(-1), byref(hdwf))
 
     if hdwf.value == hdwfNone.value:
         szerr = create_string_buffer(512)
         dwf.FDwfGetLastErrorMsg(szerr)
         print(str(szerr.value))
-        print("failed to open device")
-        quit()
+        DwfData.status = "Failed to open device :("
+    else:
+        #set up acquisition 
+        dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(0), c_bool(True))
+        dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(1), c_bool(True))
+        dwf.FDwfAnalogInAcquisitionModeSet(hdwf, acqmodeRecord)
+        # dwf.FDwfAnalogInBufferSizeSet(hdwf, c_int(ScanSample.sample))
+        dwf.FDwfAnalogInFrequencySet(hdwf, DwfData.hzAcq[0])
+        dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ScanSample.sample/DwfData.hzAcq[0].value) - 1)) 
 
-    #set up acquisition 
-    dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(0), c_bool(True))
-    dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(1), c_bool(True))
-    dwf.FDwfAnalogInAcquisitionModeSet(hdwf, acqmodeRecord)
-    # dwf.FDwfAnalogInBufferSizeSet(hdwf, c_int(ImCont.sample))
-    dwf.FDwfAnalogInFrequencySet(hdwf, DwfData.hzAcq[0])
-    dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ImCont.sample/DwfData.hzAcq[0].value) - 1)) 
-
-    dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_bool(True))
-    dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(0), AnalogOutNodeCarrier, funcDC)
-    dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_bool(True))
-    dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(1), AnalogOutNodeCarrier, funcDC)
-    #wait at least 2 seconds for the offset to stabilize
-    time.sleep(2)
+        dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_bool(True))
+        dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(0), AnalogOutNodeCarrier, funcDC)
+        dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_bool(True))
+        dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(1), AnalogOutNodeCarrier, funcDC)
+        #wait at least 2 seconds for the offset to stabilize
+        time.sleep(2)
 
 def start_osciloscope():
     global ImCont
@@ -192,7 +195,7 @@ def start_osciloscope():
 
     dwf.FDwfAnalogInConfigure(hdwf, c_int(0), c_int(1))
 
-    while csamples < ImCont.sample:
+    while csamples < ScanSample.sample:
         dwf.FDwfAnalogInStatus(hdwf, c_int(1), byref(sts))
         if csamples == 0 and (sts == DwfStateConfig or sts == DwfStatePrefill or sts == DwfStateArmed) :
             continue # Acquisition not yet started.
@@ -209,12 +212,15 @@ def start_osciloscope():
         if DwfData.cAvailable.value==0 :
             continue
 
-        if csamples+DwfData.cAvailable.value > ImCont.sample :
-            DwfData.cAvailable = c_int(ImCont.sample-csamples)
+        if csamples+DwfData.cAvailable.value > ScanSample.sample :
+            DwfData.cAvailable = c_int(ScanSample.sample-csamples)
         
-        dwf.FDwfAnalogInStatusData(hdwf, c_int(0), byref(ScanData.DataCH1, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 1 data
-        dwf.FDwfAnalogInStatusData(hdwf, c_int(1), byref(ScanData.DataCH2, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 2 data
+        dwf.FDwfAnalogInStatusData(hdwf, c_int(0), byref(ScanSample.DataCH1, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 1 data
+        dwf.FDwfAnalogInStatusData(hdwf, c_int(1), byref(ScanSample.DataCH2, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 2 data
         csamples += DwfData.cAvailable.value
+        
+        if(par['exit'] == 'n'):
+            break
 
     if (par['log'] == 't'):
         local_time = "[" + time.strftime("%H:%M:%S",time.localtime()) + "] "
@@ -228,7 +234,7 @@ def start_osciloscope():
 
 # animation function.  This is called sequentially
 def update_pictures(i):
-    resolution = ImCont.resolution
+    resolution = ScanParam.resolution
 
     ax1.cla()
     ax1.set_title("CH 1 - TOPO L->P")
@@ -239,12 +245,12 @@ def update_pictures(i):
     ax6.cla()
     ax6.set_title("CH 2 - ERROR P->L")
 
-    ax1.imshow(ImCH.CH1,  cmap='Oranges', interpolation='none') 
-    ax2.imshow(ImCH.CH2,  cmap='afmhot', interpolation='none')
-    ax5.imshow(ImCH.CH3,  cmap='Oranges', interpolation='none') 
-    ax6.imshow(ImCH.CH4,  cmap='afmhot', interpolation='none')
+    ax1.imshow(PictureData.CH1,  cmap='Oranges', interpolation='none') 
+    ax2.imshow(PictureData.CH2,  cmap='afmhot', interpolation='none')
+    ax5.imshow(PictureData.CH3,  cmap='Oranges', interpolation='none') 
+    ax6.imshow(PictureData.CH4,  cmap='afmhot', interpolation='none')
     
-    x = np.linspace(0, ImCont.sample, ImCont.sample)
+    x = np.linspace(0, ScanSample.sample, ScanSample.sample)
     ox = np.linspace(1,resolution,resolution)
    
     if(i % 2 == 1):
@@ -254,18 +260,18 @@ def update_pictures(i):
             ax3.tick_params(axis='x', colors="C1")
             ax3.tick_params(axis='y', colors="C1")
             if(par['scan'] == 'n'):
-                ax3.plot(x, ScanData.DataCH1, color="C1")
+                ax3.plot(x, ScanSample.DataCH1, color="C1")
             else:
                 if(ImCont.dir == 0):
                     if(ImCont.oY == 0):
-                        ax3.plot(ox[1:resolution], ImCH.CH1[ImCont.oY,1:resolution], color="C1")
+                        ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], color="C1")
                     else:
-                        ax3.plot(ox[1:resolution], ImCH.CH1[ImCont.oY,1:resolution], ox[1:resolution], ImCH.CH1[(ImCont.oY-1),1:resolution], color="C1")
+                        ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH1[(ImCont.oY-1),1:resolution], color="C1")
                 else:
                     if(ImCont.oY == 0):
-                        ax3.plot(ox[1:resolution], ImCH.CH3[ImCont.oY,1:resolution], color="C1")
+                        ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], color="C1")
                     else:
-                        ax3.plot(ox[1:resolution], ImCH.CH3[ImCont.oY,1:resolution], ox[1:resolution], ImCH.CH3[(ImCont.oY-1),1:resolution], color="C1")
+                        ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH3[(ImCont.oY-1),1:resolution], color="C1")
     else:
         if (par['adc2'] == 't'):
             ax4.clear()
@@ -276,24 +282,24 @@ def update_pictures(i):
             ax4.tick_params(axis='x', colors="C0")
             ax4.tick_params(axis='y', colors="C0")
             if(par['scan'] == 'n'):
-                ax4.plot(x, ScanData.DataCH2, color="C0")
+                ax4.plot(x, ScanSample.DataCH2, color="C0")
             else:
                 if(ImCont.dir == 0):
                     if(ImCont.oY == 0):
-                        ax4.plot(ox[1:resolution], ImCH.CH2[ImCont.oY,1:resolution], color="C0")
+                        ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], color="C0")
                     else:
-                        ax4.plot(ox[1:resolution], ImCH.CH2[ImCont.oY,1:resolution], ox[1:resolution], ImCH.CH2[(ImCont.oY-1),1:resolution], color="C0")
+                        ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH2[(ImCont.oY-1),1:resolution], color="C0")
                 else:
                     if(ImCont.oY == 0):
-                        ax4.plot(ox[1:resolution], ImCH.CH4[ImCont.oY,1:resolution], color="C0")
+                        ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], color="C0")
                     else:
-                        ax4.plot(ox[1:resolution], ImCH.CH4[ImCont.oY,1:resolution], ox[1:resolution], ImCH.CH4[(ImCont.oY-1),1:resolution], color="C0")
+                        ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH4[(ImCont.oY-1),1:resolution], color="C0")
    
 
 def update_values_in_datas(command, value):
     global par
     global ImCont
-    global ScanData
+    global ScanSample
     try:
         par[command] = float(value)
     except  ValueError:
@@ -301,11 +307,11 @@ def update_values_in_datas(command, value):
     
     if(command == 'sample' ):
         dana = int(value) % 20000
-        ImCont.sample = dana
-        ScanData.DataCH1 = (c_double*ImCont.sample)()
-        ScanData.DataCH2= (c_double*ImCont.sample)()
-        ScanData.f_ch1 = np.arange(ImCont.sample, dtype=float)
-        ScanData.f_ch2 = np.arange(ImCont.sample, dtype=float)
+        ScanSample.sample = dana
+        ScanSample.DataCH1 = (c_double*ScanSample.sample)()
+        ScanSample.DataCH2= (c_double*ScanSample.sample)()
+        ScanSample.f_ch1 = np.arange(ScanSample.sample, dtype=float)
+        ScanSample.f_ch2 = np.arange(ScanSample.sample, dtype=float)
     
     if(command == 'freq' ):
         dana = (int(value) % 2000) * 1000
@@ -322,9 +328,9 @@ def menu_header():
 
 def menu_parameters():
     print ("")
-    print("Status: \t", ImCont.resolution, "     ")
-    print("Resolution: \t", ImCont.resolution, "     ")
-    print("Scan sample: \t", ImCont.sample, "     ")
+    print("Status: \t", ScanParam.resolution, "     ")
+    print("Resolution: \t", ScanParam.resolution, "     ")
+    print("Scan sample: \t", ScanSample.sample, "     ")
     print("Scan freq: \t", DwfData.hzAcq[0].value, "     ")
     print("="*width)
     print("DWF Ver: \t" + DwfData.version, "     ")
@@ -365,22 +371,22 @@ def obsluga_komend():
         if(par['save'] == 't'):
             par['save'] = 'n'
             save_files()
-
-        time.sleep(0.2)
+        time.sleep(1)
+        
     plt.close()
 
 
 def save_files():
     named_tuple = time.localtime()
     time_string = time.strftime("%Y-%m-%d_%H-%M-%S", named_tuple)
-    np.savetxt( 'data\CH1_T'+ time_string +'.txt', ImCH.CH1, fmt="%10.5f", delimiter=";")
-    np.savetxt( 'data\CH1_E'+ time_string +'.txt', ImCH.CH2, fmt="%10.5f", delimiter=";")
-    np.savetxt( 'data\CH2_T'+ time_string +'.txt', ImCH.CH3, fmt="%10.5f", delimiter=";")
-    np.savetxt( 'data\CH2_E'+ time_string +'.txt', ImCH.CH4, fmt="%10.5f", delimiter=";")
-    matplotlib.image.imsave('data\CH1_T'+ time_string + '.png', ImCH.CH1)
-    matplotlib.image.imsave('data\CH1_E'+ time_string + '.png', ImCH.CH2)
-    matplotlib.image.imsave('data\CH2_T'+ time_string + '.png', ImCH.CH3)
-    matplotlib.image.imsave('data\CH2_E'+ time_string + '.png', ImCH.CH4)
+    np.savetxt( 'data\CH1_T'+ time_string +'.txt', PictureData.CH1, fmt="%10.5f", delimiter=";")
+    np.savetxt( 'data\CH1_E'+ time_string +'.txt', PictureData.CH2, fmt="%10.5f", delimiter=";")
+    np.savetxt( 'data\CH2_T'+ time_string +'.txt', PictureData.CH3, fmt="%10.5f", delimiter=";")
+    np.savetxt( 'data\CH2_E'+ time_string +'.txt', PictureData.CH4, fmt="%10.5f", delimiter=";")
+    matplotlib.image.imsave('data\CH1_T'+ time_string + '.png', PictureData.CH1)
+    matplotlib.image.imsave('data\CH1_E'+ time_string + '.png', PictureData.CH2)
+    matplotlib.image.imsave('data\CH2_T'+ time_string + '.png', PictureData.CH3)
+    matplotlib.image.imsave('data\CH2_E'+ time_string + '.png', PictureData.CH4)
     # print('ALL files saved: ' + time_string + ' ]:-> ')
     DwfData.logError = 'ALL files saved: ' + time_string + ' ]:-> '
 
@@ -389,17 +395,22 @@ def on_close(event):
     save_files()
     menu_parameters()
     end_threads()
+    quit()
 
 
 def end_threads():
     global par
     par['exit'] = 'n'
+    print("Zamykanie")
+    # time.sleep(2)
     if(t1.is_alive()):
+        print("Zamykanie watku t1")
         t1.join()
-        # print("Zamykanie watku t1")
+        # t1.terminate()
     if(t2.is_alive()):
+        print("Zamykanie watku t2")
         t2.join()
-        # print("Zamykanie watku t2")
+        # t2.terminate()
 
 
 if __name__ == "__main__":
@@ -416,10 +427,13 @@ if __name__ == "__main__":
     t1.start()
     t2.start()
 
-    fig.canvas.mpl_connect('close_event', on_close)
+    # fig.canvas.mpl_connect('close_event', on_close)
     ani = animation.FuncAnimation(fig, update_pictures, frames=50, interval=20)
     
     plt.show()
-
+    
+    # plt.close()
+    # on_close()
     end_threads()
+    quit()
     menu_end()
