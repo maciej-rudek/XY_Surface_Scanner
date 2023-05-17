@@ -1,11 +1,24 @@
 from dataclasses import dataclass
 import numpy as np
 from ctypes import *
+from enum import Enum
 
 MAX_VOLTAGE = 5.0
 MAX_AREA = 100
-START = 1
-STOP = 0
+
+class Status(Enum):
+    START = "start"
+    STOP = "stop"
+    EXIT = "exit"
+    YES = "yes"
+    NO = "no"
+
+@dataclass
+class logtime_s:
+    start = ""
+    end = ""
+    duration = ""
+    
 @dataclass
 class DwfData:
     hzAcq = [c_double(450000), c_double(450000)]
@@ -17,14 +30,16 @@ class DwfData:
     version = ""
     status = ""
     logError = ""
+    logTime = logtime_s
+    logStat = Status.NO
 
 
 @dataclass
 class ImCont:
     """Picture params"""
     dir = 0
-    x = 0
-    y = 0
+    x = 0.0
+    y = 0.0
     oY = 0
     
 @dataclass
@@ -34,10 +49,11 @@ class PictureSCS:
     x_pos = 0
     y_pos = 0
     line = 0
+    interpolate = Status.NO
 
 @dataclass
 class ScanParam:
-    scan = STOP
+    scan = Status.STOP
     resolution = 200
     area = 100
     oxy = MAX_VOLTAGE * area / MAX_AREA
@@ -60,3 +76,12 @@ class PictureData:
     CH3: float = np.zeros((ScanParam.resolution, ScanParam.resolution))
     CH4: float = np.zeros((ScanParam.resolution, ScanParam.resolution))
     line: int = 0
+    save = Status.NO
+
+
+def print_class(what_class):
+    my_class = what_class.__dict__
+    # print(my_class)
+    for name, value in my_class.items():
+        if not name.startswith('__'):
+            print('  ', name, ' = ', value)
