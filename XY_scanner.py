@@ -10,7 +10,7 @@ from dwfconstants import *
 from matplotlib import pyplot as plt
 from matplotlib import animation
 
-from scan_data.scan_data import ImCont, PictureData, ScanSample, DwfData, ScanParam
+from src.scan_data import ImCont, PictureData, ScanSample, DwfData, ScanParam
 
 np.random.seed(19680801)
 CONST_MENU_REPEAT = 10
@@ -427,7 +427,7 @@ if __name__ == "__main__":
     t1.start()
     t2.start()
 
-    # fig.canvas.mpl_connect('close_event', on_close)
+    fig.canvas.mpl_connect('close_event', on_close)
     ani = animation.FuncAnimation(fig, update_pictures, frames=50, interval=20)
     
     plt.show()
@@ -435,5 +435,5 @@ if __name__ == "__main__":
     # plt.close()
     # on_close()
     end_threads()
-    quit()
     menu_end()
+    quit()
