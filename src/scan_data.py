@@ -1,11 +1,22 @@
 from dataclasses import dataclass
 import numpy as np
 from ctypes import *
+from enum import Enum
 
 MAX_VOLTAGE = 5.0
 MAX_AREA = 100
-START = 1
-STOP = 0
+
+class Status(Enum):
+    START = "start"
+    STOP = "stop"
+    EXIT = "exit"
+
+@dataclass
+class logtime_s:
+    start = ""
+    end = ""
+    duration = ""
+    
 @dataclass
 class DwfData:
     hzAcq = [c_double(450000), c_double(450000)]
@@ -17,6 +28,7 @@ class DwfData:
     version = ""
     status = ""
     logError = ""
+    logTime = logtime_s
 
 
 @dataclass
