@@ -38,7 +38,7 @@ class PictureSCS:
 @dataclass
 class ScanParam:
     scan = STOP
-    resolution = 200
+    resolution = 20
     area = 100
     oxy = MAX_VOLTAGE * area / MAX_AREA
     offset_x = 0

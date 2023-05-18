@@ -115,9 +115,13 @@ def cykacz():
             elif (stan == 3):                 
                 ImCont.x = ImCont.x
                 ImCont.y = ImCont.y + 1
-                stan = 0
                 ImCont.oY = ImCont.oY + 1
                 PictureData.line = PictureData.line + 1
+                if(ImCont.oY == resolution):
+                    save_files()
+                    ImCont.oY = 0
+                    par['scan'] = 'n'
+                stan = 0
                 # print(PictureData.line, old_PictureData.line)
                 # Tutaj dodac kalkulacje srredniej dla X,Y dla kazdego kanału i zamiana 0 na srednia z poprzedniej linii pomiarowej
 
