@@ -1,12 +1,13 @@
 from enum import Enum
-from scan_data import Status, ScanParam
+from scan_data import Status, ScanParam, print_class
 
 class MenuControll:
 
     @staticmethod
     def param_1():
         """a1"""
-        print("Doing 1")
+        print("jestem tutaj")
+        print_class(ScanParam)
 
     @staticmethod
     def param_2():
@@ -65,11 +66,11 @@ class MenuControll:
         while(ScanParam.scan != Status.EXIT):
             MenuControll.generate_menu()
             user_input = input("Get param: \t ")
-            data_list = user_input.split()
-            MenuControll.execute(data_list)
+            print(user_input)
+            if not (user_input == ''):
+                data_list = user_input.split()
+                MenuControll.execute(data_list)
             
-        # print("Program stopped.")
-
 
 # test purpuse only
 def main():

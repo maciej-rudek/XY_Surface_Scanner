@@ -72,3 +72,11 @@ class PictureData:
     CH3: float = np.zeros((ScanParam.resolution, ScanParam.resolution))
     CH4: float = np.zeros((ScanParam.resolution, ScanParam.resolution))
     line: int = 0
+
+
+def print_class(what_class):
+    my_class = what_class.__dict__
+    # print(my_class)
+    for name, value in my_class.items():
+        if not name.startswith('__'):
+            print('  ', name, ' = ', value)
