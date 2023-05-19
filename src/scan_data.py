@@ -49,7 +49,7 @@ class PictureSCS:
 
 @dataclass
 class ScanParam:
-    scan = STOP
+    scan = Status.STOP
     resolution = 20
     area = 100
     oxy = MAX_VOLTAGE * area / MAX_AREA

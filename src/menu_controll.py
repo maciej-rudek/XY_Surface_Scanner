@@ -1,5 +1,5 @@
-
-
+from enum import Enum
+from scan_data import Status, ScanParam
 
 class MenuControll:
 
@@ -30,35 +30,31 @@ class MenuControll:
 
     @staticmethod
     def param_6():
-        """A6 exit"""
-        print("Exiting..")
-        
+        """A6"""
+        print("Doing 6..")
+    
         
     @staticmethod
-    def execute(user_input):
-        # MenuControll_name = "param_"{user_input}
-        MenuControll_name = '%s%d'%("param_", user_input)
+    def execute(data_list):
+        global MenuControll
+        MenuControll_name = '%s%s'%("param_", data_list[0])
         print(MenuControll_name)
         try:
-            MenuControll = getattr(MenuControll, MenuControll_name)
+            controller = getattr(MenuControll, MenuControll_name)
         except AttributeError:
             print("Method not found")
         else:
-            MenuControll()
-            
+            controller()
+
     
     @staticmethod
     def generate_menu():
         print("================================")
         param_methods = [m for m in dir(MenuControll) if m.startswith('param_')]
-        # for method in param_methods:
-        #     print(method[-1], getattr(MenuControll, method).__doc__)
         
-        menu_string = "\n".join([' '.join([method[-1], (getattr(MenuControll, method).__doc__)]) for method in param_methods])
-
-        # menu_string = "\n".join(
-            # [{method[-1]}. {getattr(MenuControll, method).__doc__} for method in param_methods])
-        print(menu_string)
+        for method in param_methods:
+            print(method[-1], getattr(MenuControll, method).__doc__)
+        
         print("================================")
         print("Insert a number:", end = ' ' )
 
@@ -66,11 +62,13 @@ class MenuControll:
     @staticmethod
     def run():
         user_input = 0
-        while(user_input != 6):
+        while(ScanParam.scan != Status.EXIT):
             MenuControll.generate_menu()
-            user_input = int(input())
-            MenuControll.execute(user_input)
-        print("Program stopped.")
+            user_input = input("Get param: \t ")
+            data_list = user_input.split()
+            MenuControll.execute(data_list)
+            
+        # print("Program stopped.")
 
 
 # test purpuse only
