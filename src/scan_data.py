@@ -10,6 +10,8 @@ class Status(Enum):
     START = "start"
     STOP = "stop"
     EXIT = "exit"
+    YES = "yes"
+    NO = "no"
 
 @dataclass
 class logtime_s:
@@ -35,8 +37,8 @@ class DwfData:
 class ImCont:
     """Picture params"""
     dir = 0
-    x = 0
-    y = 0
+    x = 0.0
+    y = 0.0
     oY = 0
     
 @dataclass
@@ -46,11 +48,12 @@ class PictureSCS:
     x_pos = 0
     y_pos = 0
     line = 0
+    interpolate = 'N'
 
 @dataclass
 class ScanParam:
     scan = Status.STOP
-    resolution = 20
+    resolution = 200
     area = 100
     oxy = MAX_VOLTAGE * area / MAX_AREA
     offset_x = 0
@@ -72,6 +75,7 @@ class PictureData:
     CH3: float = np.zeros((ScanParam.resolution, ScanParam.resolution))
     CH4: float = np.zeros((ScanParam.resolution, ScanParam.resolution))
     line: int = 0
+    save = Status.NO
 
 
 def print_class(what_class):

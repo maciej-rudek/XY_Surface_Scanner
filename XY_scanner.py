@@ -10,7 +10,8 @@ from dwfconstants import *
 from matplotlib import pyplot as plt
 from matplotlib import animation
 
-from src.scan_data import ImCont, PictureData, ScanSample, DwfData, ScanParam
+from src.scan_data import ImCont, PictureData, ScanSample, DwfData, ScanParam, Status
+from src.menu_controll import MenuControll 
 
 np.random.seed(19680801)
 CONST_MENU_REPEAT = 10
@@ -22,7 +23,7 @@ LINE_UP = '\033[1A'
 LINE_CLEAR = '\x1b[2K'
 width, height = os.get_terminal_size()
 
-par = { 'oxy' : 3.0, 'dx' : 0.0, 'dy' : 0.0, 
+par = { 'oxy': 3.0, 'dx' : 0.0, 'dy' : 0.0, 
         'adc1' : 't', 'adc2' : 't', 'dac1' : 'n', 'dac2' : 'n',
         'int' : 'n', 'scan' : 'n', 'save' : 'n',
         'log' : 'n', 
@@ -59,12 +60,12 @@ def cykacz():
 
     resolution = ScanParam.resolution
 
-    while (par['exit'] == 't'):
+    while (ScanParam.scan != Status.EXIT):
         
-        dxy = 2 * par['oxy'] / resolution
+        dxy = 2 * ScanParam.oxy / resolution
         
-        d1 = (ImCont.x * dxy) + par['dx'] - (par['oxy'])
-        d2 = (ImCont.y * dxy) + par['dy'] - (par['oxy'])
+        d1 = (ImCont.x * dxy) + ImCont.x - (ScanParam.oxy)
+        d2 = (ImCont.y * dxy) + ImCont.y - (ScanParam.oxy)
         
         dwf.FDwfAnalogOutNodeOffsetSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_double(d1))
         dwf.FDwfAnalogOutNodeOffsetSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
@@ -84,12 +85,12 @@ def cykacz():
         maks = ScanSample.sample
         marg = 0.1 * maks
         
-        if(par['exit'] == 'n'):
+        if(ScanParam.scan == Status.EXIT):
             break
 
         # PictureData.CH2[y, ImCont.x] = np.mean(ScanSample.f_ch2) 
 
-        if (par['scan'] == 't'):
+        if (ScanParam.scan == Status.START):
             if (stan == 0):
                 ImCont.dir = 0
                 ImCont.x = ImCont.x + 1
@@ -120,7 +121,7 @@ def cykacz():
                 if(ImCont.oY == resolution):
                     save_files()
                     ImCont.oY = 0
-                    par['scan'] = 'n'
+                    ScanParam.scan = Status.STOP
                 stan = 0
                 # print(PictureData.line, old_PictureData.line)
                 # Tutaj dodac kalkulacje srredniej dla X,Y dla kazdego kanału i zamiana 0 na srednia z poprzedniej linii pomiarowej
@@ -223,7 +224,7 @@ def start_osciloscope():
         dwf.FDwfAnalogInStatusData(hdwf, c_int(1), byref(ScanSample.DataCH2, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 2 data
         csamples += DwfData.cAvailable.value
         
-        if(par['exit'] == 'n'):
+        if(ScanParam.scan == Status.EXIT):
             break
 
     if (par['log'] == 't'):
@@ -249,55 +250,55 @@ def update_pictures(i):
     ax6.cla()
     ax6.set_title("CH 2 - ERROR P->L")
 
-    ax1.imshow(PictureData.CH1,  cmap='Oranges', interpolation='none') 
+    ax1.imshow(PictureData.CH1,  cmap='Oranges_r', interpolation='none') 
     ax2.imshow(PictureData.CH2,  cmap='afmhot', interpolation='none')
-    ax5.imshow(PictureData.CH3,  cmap='Oranges', interpolation='none') 
+    ax5.imshow(PictureData.CH3,  cmap='Oranges_r', interpolation='none') 
     ax6.imshow(PictureData.CH4,  cmap='afmhot', interpolation='none')
     
     x = np.linspace(0, ScanSample.sample, ScanSample.sample)
     ox = np.linspace(1,resolution,resolution)
    
     if(i % 2 == 1):
-        if (par['adc1'] == 't'): 
-            ax3.clear()
-            ax3.set_ylabel("CH 1 - TOPO", color="C1")
-            ax3.tick_params(axis='x', colors="C1")
-            ax3.tick_params(axis='y', colors="C1")
-            if(par['scan'] == 'n'):
-                ax3.plot(x, ScanSample.DataCH1, color="C1")
-            else:
-                if(ImCont.dir == 0):
-                    if(ImCont.oY == 0):
-                        ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], color="C1")
-                    else:
-                        ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH1[(ImCont.oY-1),1:resolution], color="C1")
+        # if (par['adc1'] == 't'):  # for future plans of many ADC's
+        ax3.clear()
+        ax3.set_ylabel("CH 1 - TOPO", color="C1")
+        ax3.tick_params(axis='x', colors="C1")
+        ax3.tick_params(axis='y', colors="C1")
+        if(ScanParam.scan == Status.STOP):
+            ax3.plot(x, ScanSample.DataCH1, color="C1")
+        else:
+            if(ImCont.dir == 0):
+                if(ImCont.oY == 0):
+                    ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], color="C1")
                 else:
-                    if(ImCont.oY == 0):
-                        ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], color="C1")
-                    else:
-                        ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH3[(ImCont.oY-1),1:resolution], color="C1")
+                    ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH1[(ImCont.oY-1),1:resolution], color="C1")
+            else:
+                if(ImCont.oY == 0):
+                    ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], color="C1")
+                else:
+                    ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH3[(ImCont.oY-1),1:resolution], color="C1")
     else:
-        if (par['adc2'] == 't'):
-            ax4.clear()
-            ax4.yaxis.tick_right()
-            ax4.set_xlabel('Samples', color="C0")
-            ax4.set_ylabel('CH 2 - ERROR', color="C0")       
-            ax4.yaxis.set_label_position('right') 
-            ax4.tick_params(axis='x', colors="C0")
-            ax4.tick_params(axis='y', colors="C0")
-            if(par['scan'] == 'n'):
-                ax4.plot(x, ScanSample.DataCH2, color="C0")
-            else:
-                if(ImCont.dir == 0):
-                    if(ImCont.oY == 0):
-                        ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], color="C0")
-                    else:
-                        ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH2[(ImCont.oY-1),1:resolution], color="C0")
+        # if (par['adc2'] == 't'): # for future plans of many ADC's
+        ax4.clear()
+        ax4.yaxis.tick_right()
+        ax4.set_xlabel('Samples', color="C0")
+        ax4.set_ylabel('CH 2 - ERROR', color="C0")       
+        ax4.yaxis.set_label_position('right') 
+        ax4.tick_params(axis='x', colors="C0")
+        ax4.tick_params(axis='y', colors="C0")
+        if(ScanParam.scan == Status.STOP):
+            ax4.plot(x, ScanSample.DataCH2, color="C0")
+        else:
+            if(ImCont.dir == 0):
+                if(ImCont.oY == 0):
+                    ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], color="C0")
                 else:
-                    if(ImCont.oY == 0):
-                        ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], color="C0")
-                    else:
-                        ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH4[(ImCont.oY-1),1:resolution], color="C0")
+                    ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH2[(ImCont.oY-1),1:resolution], color="C0")
+            else:
+                if(ImCont.oY == 0):
+                    ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], color="C0")
+                else:
+                    ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH4[(ImCont.oY-1),1:resolution], color="C0")
    
 
 def update_values_in_datas(command, value):
@@ -332,12 +333,12 @@ def menu_header():
 
 def menu_parameters():
     print ("")
-    print("Status: \t", ScanParam.resolution, "     ")
+    # print("Status: \t", ScanParam.resolution, "     ")
     print("Resolution: \t", ScanParam.resolution, "     ")
     print("Scan sample: \t", ScanSample.sample, "     ")
-    print("Scan freq: \t", DwfData.hzAcq[0].value, "     ")
+    # print("Scan freq: \t", DwfData.hzAcq[0].value, "     ")
     print("="*width)
-    print("DWF Ver: \t" + DwfData.version, "     ")
+    # print("DWF Ver: \t" + DwfData.version, "     ")
     print("Log: \t\t", DwfData.logError, "     ")
     print("-"*width)
 
@@ -357,23 +358,25 @@ def menu_end():
 
 def obsluga_komend():
     global par
-    while(par['exit'] == 't'):
+    while(ScanParam.scan != Status.EXIT):
 
         menu_parameters()
         print(" " * width, end='\r')
-        wej = input("Get param: \t ")
-        menu_param_revrite(CONST_MENU_REPEAT)
+        # wej = input("Get param: \t ")
+        # menu_param_revrite(CONST_MENU_REPEAT)
             
-        lista = wej.split()
-        if((lista[0].lower() in par) or (lista[0].lower() in com) ):
-            update_values_in_datas(lista[0].lower(), lista[1])
-            txt = "Value updated"
-            DwfData.logError = txt + (" " * 5)
-        else:
-            DwfData.logError = "Incorrectly entered command!"
+        # lista = wej.split()
+        # if((lista[0].lower() in par) or (lista[0].lower() in com) ):
+        #     update_values_in_datas(lista[0].lower(), lista[1])
+        #     txt = "Value updated"
+        #     DwfData.logError = txt + (" " * 5)
+        # else:
+        #     DwfData.logError = "Incorrectly entered command!"
         
-        if(par['save'] == 't'):
-            par['save'] = 'n'
+        MenuControll.run()
+        
+        if(PictureData.save == Status.YES):
+            PictureData.save = Status.NO
             save_files()
         time.sleep(1)
         
@@ -404,7 +407,7 @@ def on_close(event):
 
 def end_threads():
     global par
-    par['exit'] = 'n'
+    ScanParam.scan = Status.EXIT
     print("Zamykanie")
     # time.sleep(2)
     if(t1.is_alive()):

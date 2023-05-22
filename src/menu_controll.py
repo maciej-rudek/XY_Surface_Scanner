@@ -1,39 +1,37 @@
 from enum import Enum
-from scan_data import Status, ScanParam, print_class
+from src.scan_data import ScanSample
+from src.scan_data import Status, ScanParam, DwfData, PictureData
 
 class MenuControll:
 
     @staticmethod
-    def param_1():
-        """a1"""
-        print("jestem tutaj")
-        print_class(ScanParam)
+    def param_1(data_params):
+        """Nr of Samples [50-10000]"""
+        ScanSample.sample = data_params
 
     @staticmethod
-    def param_2():
-        """A2"""
-        print("Doing 2")
+    def param_2(data_params):
+        """Scan Area [1-100] """
+        ScanParam.area = data_params
 
     @staticmethod
-    def param_3():
-        """A3"""
-        print("Doing 3")
+    def param_3(data_params):
+        """Resolution [50-500] """
+        ScanParam.resolution = data_params
 
     @staticmethod
-    def param_4():
-        """A4"""
-        print("Doing 4")
+    def param_4(data_params):
+        """Show all Logs"""
 
     @staticmethod
-    def param_5():
-        """A5"""
-        print("Doing 5")
-
-    @staticmethod
-    def param_6():
-        """A6"""
-        print("Doing 6..")
+    def param_5(data_params):
+        """Save picture"""
+        PictureData.save = Status(data_params)
     
+    @staticmethod
+    def param_6(data_params):
+        """Scan-Stop-Exit"""
+        ScanParam.scan = Status(data_params)
         
     @staticmethod
     def execute(data_list):
@@ -43,9 +41,12 @@ class MenuControll:
         try:
             controller = getattr(MenuControll, MenuControll_name)
         except AttributeError:
-            print("Method not found")
+            DwfData.logError = "Method not found."
         else:
-            controller()
+            if (len(data_list) > 1):
+                controller(data_list[1])
+            else:
+                DwfData.logError = "Empty parameter."
 
     
     @staticmethod
@@ -56,6 +57,8 @@ class MenuControll:
         for method in param_methods:
             print(method[-1], getattr(MenuControll, method).__doc__)
         
+        print("--------------------------------")
+            #logs
         print("================================")
         print("Insert a number:", end = ' ' )
 
@@ -63,19 +66,22 @@ class MenuControll:
     @staticmethod
     def run():
         user_input = 0
-        while(ScanParam.scan != Status.EXIT):
-            MenuControll.generate_menu()
-            user_input = input("Get param: \t ")
-            print(user_input)
-            if not (user_input == ''):
-                data_list = user_input.split()
-                MenuControll.execute(data_list)
+        # while(ScanParam.scan != Status.EXIT):
+        MenuControll.generate_menu()
+        user_input = input("Get param: \t ")
+        print(user_input)
+        if not (user_input == ''):
+            data_list = user_input.split()
+            MenuControll.execute(data_list)
+        else:
+            DwfData.logError = "Empty prompt."
             
 
 # test purpuse only
-def main():
-    MenuControll.run()
+# def main():
+    #cwhile(ScanParam.scan != Status.EXIT):
+    # MenuControll.run()
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
