@@ -378,7 +378,7 @@ def obsluga_komend():
         if(PictureData.save == Status.YES):
             PictureData.save = Status.NO
             save_files()
-        time.sleep(1)
+        time.sleep(0.2)
         
     plt.close()
 
@@ -414,9 +414,9 @@ def end_threads():
         print("Zamykanie watku t1")
         t1.join()
         # t1.terminate()
-    if(t2.is_alive()):
-        print("Zamykanie watku t2")
-        t2.join()
+    # if(t2.is_alive()):
+    #     print("Zamykanie watku t2")
+    #     t2.join()
         # t2.terminate()
 
 
@@ -429,10 +429,10 @@ if __name__ == "__main__":
     menu_header()
 
     t1 = threading.Thread(target=obsluga_komend, args=())
-    t2 = threading.Thread(target=cykacz, args=())
+    # t2 = threading.Thread(target=cykacz, args=())
   
     t1.start()
-    t2.start()
+    # t2.start()
 
     fig.canvas.mpl_connect('close_event', on_close)
     ani = animation.FuncAnimation(fig, update_pictures, frames=50, interval=20)

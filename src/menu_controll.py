@@ -6,18 +6,18 @@ class MenuControll:
 
     @staticmethod
     def param_1(data_params):
-        """Nr of Samples [50-10000]"""
-        ScanSample.sample = data_params
+        """Nr of Samples [200-10000]"""
+        ScanSample.sample = int(data_params)
 
     @staticmethod
     def param_2(data_params):
         """Scan Area [1-100] """
-        ScanParam.area = data_params
+        ScanParam.area = int(data_params)
 
     @staticmethod
     def param_3(data_params):
         """Resolution [50-500] """
-        ScanParam.resolution = data_params
+        ScanParam.resolution = int(data_params)
 
     @staticmethod
     def param_4(data_params):
@@ -25,7 +25,7 @@ class MenuControll:
 
     @staticmethod
     def param_5(data_params):
-        """Save picture"""
+        """Save picture [yes, no]"""
         PictureData.save = Status(data_params)
     
     @staticmethod
@@ -34,8 +34,9 @@ class MenuControll:
         ScanParam.scan = Status(data_params)
         
     @staticmethod
-    def execute(data_list):
+    def execute(user_input):
         global MenuControll
+        data_list = user_input.split()
         MenuControll_name = '%s%s'%("param_", data_list[0])
         print(MenuControll_name)
         try:
@@ -43,7 +44,10 @@ class MenuControll:
         except AttributeError:
             DwfData.logError = "Method not found."
         else:
-            if (len(data_list) > 1):
+            elements = len(data_list) 
+            if (elements == 1):
+                controller('NoN')
+            elif(elements > 1):
                 controller(data_list[1])
             else:
                 DwfData.logError = "Empty parameter."
@@ -69,10 +73,10 @@ class MenuControll:
         # while(ScanParam.scan != Status.EXIT):
         MenuControll.generate_menu()
         user_input = input("Get param: \t ")
-        print(user_input)
+        # print(user_input)
         if not (user_input == ''):
-            data_list = user_input.split()
-            MenuControll.execute(data_list)
+            # data_list = user_input.split()
+            MenuControll.execute(user_input)
         else:
             DwfData.logError = "Empty prompt."
             
