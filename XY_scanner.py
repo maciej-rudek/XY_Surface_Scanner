@@ -301,27 +301,6 @@ def update_pictures(i):
                     ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH4[(ImCont.oY-1),1:resolution], color="C0")
    
 
-def update_values_in_datas(command, value):
-    global par
-    global ImCont
-    global ScanSample
-    try:
-        par[command] = float(value)
-    except  ValueError:
-        par[command] = value
-    
-    if(command == 'sample' ):
-        dana = int(value) % 20000
-        ScanSample.sample = dana
-        ScanSample.DataCH1 = (c_double*ScanSample.sample)()
-        ScanSample.DataCH2= (c_double*ScanSample.sample)()
-        ScanSample.f_ch1 = np.arange(ScanSample.sample, dtype=float)
-        ScanSample.f_ch2 = np.arange(ScanSample.sample, dtype=float)
-    
-    if(command == 'freq' ):
-        dana = (int(value) % 2000) * 1000
-        DwfData.hzAcq[0] = c_double(dana)
-
 
 def menu_header():
     txt = "XY Scanner - STM / AFM"
@@ -336,9 +315,9 @@ def menu_parameters():
     # print("Status: \t", ScanParam.resolution, "     ")
     print("Resolution: \t", ScanParam.resolution, "     ")
     print("Scan sample: \t", ScanSample.sample, "     ")
-    # print("Scan freq: \t", DwfData.hzAcq[0].value, "     ")
+    print("Scan freq: \t", DwfData.hzAcq[0].value, "     ")
     print("="*width)
-    # print("DWF Ver: \t" + DwfData.version, "     ")
+    print("DWF Ver: \t" + DwfData.version, "     ")
     print("Log: \t\t", DwfData.logError, "     ")
     print("-"*width)
 
@@ -409,15 +388,15 @@ def end_threads():
     global par
     ScanParam.scan = Status.EXIT
     print("Zamykanie")
-    # time.sleep(2)
+    time.sleep(2)
     if(t1.is_alive()):
         print("Zamykanie watku t1")
         t1.join()
-        # t1.terminate()
-    # if(t2.is_alive()):
-    #     print("Zamykanie watku t2")
-    #     t2.join()
-        # t2.terminate()
+        t1.terminate()
+    if(t2.is_alive()):
+        print("Zamykanie watku t2")
+        t2.join()
+        t2.terminate()
 
 
 if __name__ == "__main__":
@@ -429,10 +408,10 @@ if __name__ == "__main__":
     menu_header()
 
     t1 = threading.Thread(target=obsluga_komend, args=())
-    # t2 = threading.Thread(target=cykacz, args=())
+    t2 = threading.Thread(target=cykacz, args=())
   
     t1.start()
-    # t2.start()
+    t2.start()
 
     fig.canvas.mpl_connect('close_event', on_close)
     ani = animation.FuncAnimation(fig, update_pictures, frames=50, interval=20)
