@@ -12,6 +12,7 @@ from matplotlib import animation
 
 from src.scan_data import ImCont, PictureData, ScanSample, DwfData, ScanParam, Status, PictureSCS
 from src.menu_controll import MenuControll 
+from src.files_operation import FileOperations
 
 np.random.seed(19680801)
 
@@ -107,7 +108,7 @@ def start_AD2():
                 ImCont.oY = ImCont.oY + 1
                 PictureData.line = PictureData.line + 1
                 if(ImCont.oY == resolution):
-                    save_files()
+                    FileOperations.save_manager_files()
                     ImCont.oY = 0
                     ScanParam.scan = Status.STOP
                 stan = 0
@@ -183,7 +184,6 @@ def open_device():
 
 def start_osciloscope():
     global ImCont
-    global par
     csamples = 0
 
     dwf.FDwfAnalogInConfigure(hdwf, c_int(0), c_int(1))
@@ -247,7 +247,6 @@ def update_pictures(i):
     ox = np.linspace(1,resolution,resolution)
    
     if(i % 2 == 1):
-        # if (par['adc1'] == 't'):  # for future plans of many ADC's
         ax3.clear()
         ax3.set_ylabel("CH 1 - TOPO", color="C1")
         ax3.tick_params(axis='x', colors="C1")
@@ -266,7 +265,6 @@ def update_pictures(i):
                 else:
                     ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH3[(ImCont.oY-1),1:resolution], color="C1")
     else:
-        # if (par['adc2'] == 't'): # for future plans of many ADC's
         ax4.clear()
         ax4.yaxis.tick_right()
         ax4.set_xlabel('Samples', color="C0")
@@ -289,42 +287,24 @@ def update_pictures(i):
                     ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH4[(ImCont.oY-1),1:resolution], color="C0")
    
 
-
 def commands_and_menu():
-    global par
     while(ScanParam.scan != Status.EXIT):
         MenuControll.run()
         if(PictureData.save == Status.YES):
+            FileOperations.save_manager_files()
             PictureData.save = Status.NO
-            save_files()
         time.sleep(0.2)
     plt.close()
 
 
-def save_files():
-    named_tuple = time.localtime()
-    time_string = time.strftime("%Y-%m-%d_%H-%M-%S", named_tuple)
-    np.savetxt( 'data\CH1_T'+ time_string +'.txt', PictureData.CH1, fmt="%10.5f", delimiter=";")
-    np.savetxt( 'data\CH1_E'+ time_string +'.txt', PictureData.CH2, fmt="%10.5f", delimiter=";")
-    np.savetxt( 'data\CH2_T'+ time_string +'.txt', PictureData.CH3, fmt="%10.5f", delimiter=";")
-    np.savetxt( 'data\CH2_E'+ time_string +'.txt', PictureData.CH4, fmt="%10.5f", delimiter=";")
-    matplotlib.image.imsave('data\CH1_T'+ time_string + '.png', PictureData.CH1)
-    matplotlib.image.imsave('data\CH1_E'+ time_string + '.png', PictureData.CH2)
-    matplotlib.image.imsave('data\CH2_T'+ time_string + '.png', PictureData.CH3)
-    matplotlib.image.imsave('data\CH2_E'+ time_string + '.png', PictureData.CH4)
-    # print('ALL files saved: ' + time_string + ' ]:-> ')
-    DwfData.logError = 'ALL files saved: ' + time_string + ' ]:-> '
-
-
 def on_close(event):
-    save_files()
+    FileOperations.save_manager_files()
     MenuControll.menu_parameters()
     end_threads()
     quit()
 
 
 def end_threads():
-    global par
     ScanParam.scan = Status.EXIT
     print("End all threads and Close app")
     time.sleep(2)

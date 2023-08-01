@@ -14,7 +14,7 @@ class Status(Enum):
     NO = "no"
 
 @dataclass
-class logtime_s:
+class Logtime:
     start = ""
     end = ""
     duration = ""
@@ -30,8 +30,11 @@ class DwfData:
     version = ""
     status = ""
     logError = ""
-    logTime = logtime_s
+    logTime = Logtime
     logStat = Status.NO
+    title = "SCAN"
+    directory = "NoN"
+    files = "000"
 
 
 @dataclass
@@ -81,7 +84,6 @@ class PictureData:
 
 def print_class(what_class):
     my_class = what_class.__dict__
-    # print(my_class)
     for name, value in my_class.items():
         if not name.startswith('__'):
             print('  ', name, ' = ', value)

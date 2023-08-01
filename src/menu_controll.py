@@ -1,9 +1,10 @@
+import os
+import time
+import numpy as np
+
 from enum import Enum
 from ctypes import *
-from src.scan_data import ImCont, ScanSample, Status, ScanParam, DwfData, PictureData, PictureSCS
-
-import os
-import numpy as np
+from src.scan_data import ImCont, ScanSample, Status, ScanParam, DwfData, Logtime, PictureData, PictureSCS
 
 LINE_UP = '\033[1A'
 LINE_CLEAR = '\x1b[2K'
@@ -66,6 +67,9 @@ class MenuControll:
     @staticmethod
     def param_scan(data_params):
         """Scan: Start"""
+        named_tuple = time.localtime()
+        time_info = time.strftime("%H-%M-%S", named_tuple)
+        DwfData.logTime.start = time_info
         ScanParam.scan = Status.START
 
     @staticmethod
