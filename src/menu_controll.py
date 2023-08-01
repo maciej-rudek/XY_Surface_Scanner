@@ -5,6 +5,7 @@ import numpy as np
 from enum import Enum
 from ctypes import *
 from src.scan_data import ImCont, ScanSample, Status, ScanParam, DwfData, Logtime, PictureData, PictureSCS
+from src.files_operation import FileOperations
 
 LINE_UP = '\033[1A'
 LINE_CLEAR = '\x1b[2K'
@@ -76,6 +77,14 @@ class MenuControll:
     def param_stop(data_params):
         """Scan: Stop"""
         ScanParam.scan = Status.STOP
+
+    @staticmethod
+    def param_save(data_params):
+        """Scan: Save"""
+        named_tuple = time.localtime()
+        time_info = time.strftime("%H-%M-%S", named_tuple)
+        FileOperations.save_manager_files(time_info)
+        # ScanParam.scan = Status.SAVE
 
     @staticmethod
     def param_exit(data_params):

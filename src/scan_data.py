@@ -10,6 +10,7 @@ class Status(Enum):
     START = "start"
     STOP = "stop"
     EXIT = "exit"
+    SAVE = "save"
     YES = "yes"
     NO = "no"
 
