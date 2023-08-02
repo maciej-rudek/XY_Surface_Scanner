@@ -306,7 +306,7 @@ def on_close(event):
 
 def end_threads():
     ScanParam.scan = Status.EXIT
-    print("End all threads and Close app")
+    print("Locking all dragons in dungeons o-]===> ")
     time.sleep(2)
     if(t1.is_alive()):
         t1.join()
