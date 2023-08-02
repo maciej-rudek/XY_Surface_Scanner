@@ -9,7 +9,7 @@ from src.files_operation import FileOperations
 
 LINE_UP = '\033[1A'
 LINE_CLEAR = '\x1b[2K'
-CONST_MENU_REPEAT = 9
+CONST_MENU_REPEAT = 13
 
 width, height = os.get_terminal_size()
 
@@ -132,11 +132,15 @@ class MenuControll:
     @staticmethod
     def menu_parameters():
         print ("")
-        print("Resolution: \t", ScanParam.resolution, "     ")
         print("Scan sample: \t", ScanSample.sample, "     ")
+        print("Resolution: \t", ScanParam.resolution, "     ")
+        print("Scan area: \t", (ScanParam.area), "     ")
+        print("Scan area: \t", (ScanParam.oxy), "     ")
+        print("Offset X: \t", (ScanParam.offset_x), "     ")
+        print("Offset Y: \t", (ScanParam.offset_y), "     ")
         print("Scan freq: \t", DwfData.hzAcq[0].value, "     ")
         print("="*width)
-        print("DWF Ver: \t" + DwfData.version, "     ")
+        print("DWF Ver: \t ", DwfData.version, "     ")
         print("Log: \t\t", DwfData.logError, "     ")
         print("-"*width)
         print(" " * width, end='\r')
