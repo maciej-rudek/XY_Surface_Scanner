@@ -80,7 +80,7 @@ class MenuControll:
 
     @staticmethod
     def param_save(data_params):
-        """Scan: Save"""
+        """File: Save"""
         named_tuple = time.localtime()
         time_info = time.strftime("%H-%M-%S", named_tuple)
         FileOperations.save_manager_files(time_info)

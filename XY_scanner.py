@@ -152,7 +152,7 @@ def start_AD2():
 def check_device():
     version = create_string_buffer(16)
     dwf.FDwfGetVersion(version)
-    DwfData.version = " " + str(version.value)
+    DwfData.version = str(version.value)
     # print(DwfData.version)
 
 
