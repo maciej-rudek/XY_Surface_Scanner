@@ -1,3 +1,5 @@
+from asyncio.windows_events import NULL
+from ctypes.wintypes import DWORD
 from dataclasses import dataclass
 import numpy as np
 from ctypes import *
@@ -37,6 +39,12 @@ class DwfData:
     directory = "NoN"
     files = "000"
 
+
+@dataclass
+class Dwf:
+    dw = NULL
+    hdwf = c_int()
+    sts = c_byte()
 
 @dataclass
 class ImCont:
