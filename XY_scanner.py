@@ -1,20 +1,35 @@
-import sys
 import matplotlib
 import threading
 import time
+import sys
 import numpy as np
 import os
 
 from ctypes import *
-from dwfconstants import *
+from src.dwfconstants import *
 from matplotlib import pyplot as plt
 from matplotlib import animation
 
-from src.scan_data import ImCont, PictureData, ScanSample, DwfData, ScanParam, Status, PictureSCS
+from src.scan_data import Dwf, ImCont, PictureData, ScanSample, DwfData, ScanParam, Status, PictureSCS
 from src.menu_controll import MenuControll 
 from src.files_operation import FileOperations
+# from src.device_configuration import *
 
 np.random.seed(19680801)
+
+# First set up the figure, the axis, and the plot element we want to animate
+fig = plt.figure()
+gs = fig.add_gridspec(2,4)
+
+ax1 = fig.add_subplot(gs[0, 0])
+ax2 = fig.add_subplot(gs[0, 1])
+ax5 = fig.add_subplot(gs[0, 2])
+ax6 = fig.add_subplot(gs[0, 3])
+ax3 = fig.add_subplot(gs[1, :], label="1")
+ax4 = fig.add_subplot(gs[1, :], label="2", frame_on=False)
+x = np.linspace(0, 10*np.pi, 100)
+y = np.sin(x)
+line1, = ax4.plot(x, y, 'b-')
 
 #declare ctype variables
 hdwf = c_int()
@@ -28,23 +43,15 @@ elif sys.platform.startswith("darwin"):
 else:
     dwf = cdll.LoadLibrary("libdwf.so")
 
+#print(DWF version
+def Check_device():
+    version = create_string_buffer(16)
+    dwf.FDwfGetVersion(version)
+    DwfData.version = str(version.value)
+    # print(DwfData.version)
+    
 
-# First set up the figure, the axis, and the plot element we want to animate
-fig = plt.figure()
-gs = fig.add_gridspec(2,4)
-
-ax1 = fig.add_subplot(gs[0, 0])
-ax2 = fig.add_subplot(gs[0, 1])
-ax5 = fig.add_subplot(gs[0, 2])
-ax6 = fig.add_subplot(gs[0, 3])
-ax3 = fig.add_subplot(gs[1, :], label="1")
-ax4 = fig.add_subplot(gs[1, :], label="2", frame_on=False)
-
-
-def start_AD2():
-    global PictureData
-    global ImCont
-    global ScanSample
+def Start_AD2():
     stan = 0
 
     resolution = ScanParam.resolution
@@ -146,44 +153,8 @@ def start_AD2():
             PictureData.CH3[(PictureData.line+1):resolution,0:resolution] = 0
             PictureData.CH4[(PictureData.line+1):resolution,0:resolution] = 0
         #time.sleep(0.02)
-
         
-#print(DWF version
-def check_device():
-    version = create_string_buffer(16)
-    dwf.FDwfGetVersion(version)
-    DwfData.version = str(version.value)
-    # print(DwfData.version)
-
-
-#open device
-def open_device():
-    DwfData.status = "Opening first device"
-    dwf.FDwfDeviceOpen(c_int(-1), byref(hdwf))
-
-    if hdwf.value == hdwfNone.value:
-        szerr = create_string_buffer(512)
-        dwf.FDwfGetLastErrorMsg(szerr)
-        print(str(szerr.value))
-        DwfData.status = "Failed to open device :("
-    else:
-        #set up acquisition 
-        dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(0), c_bool(True))
-        dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(1), c_bool(True))
-        dwf.FDwfAnalogInAcquisitionModeSet(hdwf, acqmodeRecord)
-        # dwf.FDwfAnalogInBufferSizeSet(hdwf, c_int(ScanSample.sample))
-        dwf.FDwfAnalogInFrequencySet(hdwf, DwfData.hzAcq[0])
-        dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ScanSample.sample/DwfData.hzAcq[0].value) - 1)) 
-
-        dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_bool(True))
-        dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(0), AnalogOutNodeCarrier, funcDC)
-        dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_bool(True))
-        dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(1), AnalogOutNodeCarrier, funcDC)
-        #wait at least 2 seconds for the offset to stabilize
-        time.sleep(2)
-
 def start_osciloscope():
-    global ImCont
     csamples = 0
 
     dwf.FDwfAnalogInConfigure(hdwf, c_int(0), c_int(1))
@@ -224,6 +195,33 @@ def start_osciloscope():
             DwfData.logError = local_time + "Samples could be corrupted! Reduce frequency"
             DwfData.logStat = Status.NO
 
+
+
+#open device
+def Open_device():
+    DwfData.status = "Opening first device"
+    dwf.FDwfDeviceOpen(c_int(-1), byref(hdwf))
+
+    if hdwf.value == hdwfNone.value:
+        szerr = create_string_buffer(512)
+        dwf.FDwfGetLastErrorMsg(szerr)
+        print(str(szerr.value))
+        DwfData.status = "Failed to open device :("
+    else:
+        #set up acquisition 
+        dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(0), c_bool(True))
+        dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(1), c_bool(True))
+        dwf.FDwfAnalogInAcquisitionModeSet(hdwf, acqmodeRecord)
+        # dwfAnalogInBufferSizeSet(hdwf, c_int(ScanSample.sample))
+        dwf.FDwfAnalogInFrequencySet(hdwf, DwfData.hzAcq[0])
+        dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ScanSample.sample/DwfData.hzAcq[0].value) - 1)) 
+
+        dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_bool(True))
+        dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(0), AnalogOutNodeCarrier, funcDC)
+        dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_bool(True))
+        dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(1), AnalogOutNodeCarrier, funcDC)
+        #wait at least 2 seconds for the offset to stabilize
+        time.sleep(2)
 
 # animation function.  This is called sequentially
 def update_pictures(i):
@@ -273,7 +271,9 @@ def update_pictures(i):
         ax4.tick_params(axis='x', colors="C0")
         ax4.tick_params(axis='y', colors="C0")
         if(ScanParam.scan == Status.STOP):
-            ax4.plot(x, ScanSample.DataCH2, color="C0")
+            # ax4.plot(x, ScanSample.DataCH2, color="C0")
+            line1.set_ydata(ScanSample.DataCH2)
+            # fig.canvas.draw()
         else:
             if(ImCont.dir == 0):
                 if(ImCont.oY == 0):
@@ -320,12 +320,12 @@ if __name__ == "__main__":
 
     os.system('cls' if os.name == 'nt' else 'clear')
 
-    check_device()
-    open_device()
+    Check_device()
+    Open_device()
     MenuControll.menu_header()
 
     t1 = threading.Thread(target=commands_and_menu, args=())
-    t2 = threading.Thread(target=start_AD2, args=())
+    t2 = threading.Thread(target= Start_AD2, args=())
   
     t1.start()
     t2.start()
