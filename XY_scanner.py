@@ -13,7 +13,7 @@ from matplotlib import animation
 from src.scan_data import Dwf, ImCont, PictureData, ScanSample, DwfData, ScanParam, Status, PictureSCS
 from src.menu_controll import MenuControll 
 from src.files_operation import FileOperations
-# from src.device_configuration import *
+from src.device_configuration import Device #Check_device
 
 np.random.seed(19680801)
 
@@ -36,19 +36,19 @@ hdwf = c_int()
 sts = c_byte()
 
 
-if sys.platform.startswith("win"):
-    dwf = cdll.dwf
-elif sys.platform.startswith("darwin"):
-    dwf = cdll.LoadLibrary("/Library/Frameworks/dwf.framework/dwf")
-else:
-    dwf = cdll.LoadLibrary("libdwf.so")
+def Open_device():
+    DwfData.status = "Opening first device"
+    Dwf.dw.FDwfDeviceOpen(c_int(-1), byref(hdwf))
 
-#print(DWF version
-def Check_device():
-    version = create_string_buffer(16)
-    dwf.FDwfGetVersion(version)
-    DwfData.version = str(version.value)
-    # print(DwfData.version)
+    if hdwf.value == hdwfNone.value:
+        szerr = create_string_buffer(512)
+        Dwf.dw.FDwfGetLastErrorMsg(szerr)
+        print(str(szerr.value))
+        DwfData.status = "Failed to open device :("
+    else:
+        Device.Set_sample_aqusition()
+        time.sleep(2)
+
     
 
 def Start_AD2():
@@ -63,15 +63,15 @@ def Start_AD2():
         d1 = (ImCont.x * dxy) + ImCont.x - (ScanParam.oxy)
         d2 = (ImCont.y * dxy) + ImCont.y - (ScanParam.oxy)
         
-        dwf.FDwfAnalogOutNodeOffsetSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_double(d1))
-        dwf.FDwfAnalogOutNodeOffsetSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_double(d1))
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
         
         start_osciloscope()
 
         if(DwfData.hzAcq[0] != DwfData.hzAcq[1]):
             DwfData.hzAcq[1] = DwfData.hzAcq[0]
-            dwf.FDwfAnalogInFrequencySet(hdwf, DwfData.hzAcq[0])
-            dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ScanSample.sample/DwfData.hzAcq[0].value) - 1))
+            Dwf.dw.FDwfAnalogInFrequencySet(hdwf, DwfData.hzAcq[0])
+            Dwf.dw.FDwfAnalogInRecordLengthSet(hdwf, c_double((ScanSample.sample/DwfData.hzAcq[0].value) - 1))
             DwfData.logError = "Data frequency success updated in device"
 
         for i in range(ScanSample.sample):
@@ -157,14 +157,14 @@ def Start_AD2():
 def start_osciloscope():
     csamples = 0
 
-    dwf.FDwfAnalogInConfigure(hdwf, c_int(0), c_int(1))
+    Dwf.dw.FDwfAnalogInConfigure(hdwf, c_int(0), c_int(1))
 
     while csamples < ScanSample.sample:
-        dwf.FDwfAnalogInStatus(hdwf, c_int(1), byref(sts))
+        Dwf.dw.FDwfAnalogInStatus(hdwf, c_int(1), byref(sts))
         if csamples == 0 and (sts == DwfStateConfig or sts == DwfStatePrefill or sts == DwfStateArmed) :
             continue # Acquisition not yet started.
 
-        dwf.FDwfAnalogInStatusRecord(hdwf, byref(DwfData.cAvailable), byref(DwfData.cLost), byref(DwfData.cCorrupted))
+        Dwf.dw.FDwfAnalogInStatusRecord(hdwf, byref(DwfData.cAvailable), byref(DwfData.cLost), byref(DwfData.cCorrupted))
         
         csamples += DwfData.cLost.value
 
@@ -179,8 +179,8 @@ def start_osciloscope():
         if csamples+DwfData.cAvailable.value > ScanSample.sample :
             DwfData.cAvailable = c_int(ScanSample.sample-csamples)
         
-        dwf.FDwfAnalogInStatusData(hdwf, c_int(0), byref(ScanSample.DataCH1, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 1 data
-        dwf.FDwfAnalogInStatusData(hdwf, c_int(1), byref(ScanSample.DataCH2, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 2 data
+        Dwf.dw.FDwfAnalogInStatusData(hdwf, c_int(0), byref(ScanSample.DataCH1, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 1 data
+        Dwf.dw.FDwfAnalogInStatusData(hdwf, c_int(1), byref(ScanSample.DataCH2, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 2 data
         csamples += DwfData.cAvailable.value
         
         if(ScanParam.scan == Status.EXIT):
@@ -195,33 +195,6 @@ def start_osciloscope():
             DwfData.logError = local_time + "Samples could be corrupted! Reduce frequency"
             DwfData.logStat = Status.NO
 
-
-
-#open device
-def Open_device():
-    DwfData.status = "Opening first device"
-    dwf.FDwfDeviceOpen(c_int(-1), byref(hdwf))
-
-    if hdwf.value == hdwfNone.value:
-        szerr = create_string_buffer(512)
-        dwf.FDwfGetLastErrorMsg(szerr)
-        print(str(szerr.value))
-        DwfData.status = "Failed to open device :("
-    else:
-        #set up acquisition 
-        dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(0), c_bool(True))
-        dwf.FDwfAnalogInChannelEnableSet(hdwf, c_int(1), c_bool(True))
-        dwf.FDwfAnalogInAcquisitionModeSet(hdwf, acqmodeRecord)
-        # dwfAnalogInBufferSizeSet(hdwf, c_int(ScanSample.sample))
-        dwf.FDwfAnalogInFrequencySet(hdwf, DwfData.hzAcq[0])
-        dwf.FDwfAnalogInRecordLengthSet(hdwf, c_double((ScanSample.sample/DwfData.hzAcq[0].value) - 1)) 
-
-        dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_bool(True))
-        dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(0), AnalogOutNodeCarrier, funcDC)
-        dwf.FDwfAnalogOutNodeEnableSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_bool(True))
-        dwf.FDwfAnalogOutNodeFunctionSet(hdwf, c_int(1), AnalogOutNodeCarrier, funcDC)
-        #wait at least 2 seconds for the offset to stabilize
-        time.sleep(2)
 
 # animation function.  This is called sequentially
 def update_pictures(i):
@@ -320,7 +293,7 @@ if __name__ == "__main__":
 
     os.system('cls' if os.name == 'nt' else 'clear')
 
-    Check_device()
+    Device.Check_device()
     Open_device()
     MenuControll.menu_header()
 
