@@ -13,7 +13,7 @@ from matplotlib import animation
 from src.scan_data import Dwf, ImCont, PictureData, ScanSample, DwfData, ScanParam, Status, PictureSCS
 from src.menu_controll import MenuControll 
 from src.files_operation import FileOperations
-from src.device_configuration import Device #Check_device
+from src.device_configuration import Device #, start_osciloscope #Check_device
 
 np.random.seed(19680801)
 
@@ -31,25 +31,6 @@ x = np.linspace(0, 10*np.pi, 100)
 y = np.sin(x)
 line1, = ax4.plot(x, y, 'b-')
 
-#declare ctype variables
-hdwf = c_int()
-sts = c_byte()
-
-
-def Open_device():
-    DwfData.status = "Opening first device"
-    Dwf.dw.FDwfDeviceOpen(c_int(-1), byref(hdwf))
-
-    if hdwf.value == hdwfNone.value:
-        szerr = create_string_buffer(512)
-        Dwf.dw.FDwfGetLastErrorMsg(szerr)
-        print(str(szerr.value))
-        DwfData.status = "Failed to open device :("
-    else:
-        Device.Set_sample_aqusition()
-        time.sleep(2)
-
-    
 
 def Start_AD2():
     stan = 0
@@ -63,15 +44,15 @@ def Start_AD2():
         d1 = (ImCont.x * dxy) + ImCont.x - (ScanParam.oxy)
         d2 = (ImCont.y * dxy) + ImCont.y - (ScanParam.oxy)
         
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(hdwf, c_int(0), AnalogOutNodeCarrier, c_double(d1))
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(0), AnalogOutNodeCarrier, c_double(d1))
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
         
-        start_osciloscope()
+        Device.start_osciloscope()
 
         if(DwfData.hzAcq[0] != DwfData.hzAcq[1]):
             DwfData.hzAcq[1] = DwfData.hzAcq[0]
-            Dwf.dw.FDwfAnalogInFrequencySet(hdwf, DwfData.hzAcq[0])
-            Dwf.dw.FDwfAnalogInRecordLengthSet(hdwf, c_double((ScanSample.sample/DwfData.hzAcq[0].value) - 1))
+            Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, DwfData.hzAcq[0])
+            Dwf.dw.FDwfAnalogInRecordLengthSet(Dwf.hdwf, c_double((ScanSample.sample/DwfData.hzAcq[0].value) - 1))
             DwfData.logError = "Data frequency success updated in device"
 
         for i in range(ScanSample.sample):
@@ -154,47 +135,6 @@ def Start_AD2():
             PictureData.CH4[(PictureData.line+1):resolution,0:resolution] = 0
         #time.sleep(0.02)
         
-def start_osciloscope():
-    csamples = 0
-
-    Dwf.dw.FDwfAnalogInConfigure(hdwf, c_int(0), c_int(1))
-
-    while csamples < ScanSample.sample:
-        Dwf.dw.FDwfAnalogInStatus(hdwf, c_int(1), byref(sts))
-        if csamples == 0 and (sts == DwfStateConfig or sts == DwfStatePrefill or sts == DwfStateArmed) :
-            continue # Acquisition not yet started.
-
-        Dwf.dw.FDwfAnalogInStatusRecord(hdwf, byref(DwfData.cAvailable), byref(DwfData.cLost), byref(DwfData.cCorrupted))
-        
-        csamples += DwfData.cLost.value
-
-        if DwfData.cLost.value :
-            DwfData.fLost = 1
-        if DwfData.cCorrupted.value :
-            DwfData.fCorrupted = 1
-
-        if DwfData.cAvailable.value==0 :
-            continue
-
-        if csamples+DwfData.cAvailable.value > ScanSample.sample :
-            DwfData.cAvailable = c_int(ScanSample.sample-csamples)
-        
-        Dwf.dw.FDwfAnalogInStatusData(hdwf, c_int(0), byref(ScanSample.DataCH1, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 1 data
-        Dwf.dw.FDwfAnalogInStatusData(hdwf, c_int(1), byref(ScanSample.DataCH2, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 2 data
-        csamples += DwfData.cAvailable.value
-        
-        if(ScanParam.scan == Status.EXIT):
-            break
-
-    if (DwfData.logStat == Status.YES):
-        local_time = "[" + time.strftime("%H:%M:%S",time.localtime()) + "] "
-        if DwfData.fLost:
-            DwfData.logError = local_time + "Samples were lost! Reduce frequency"
-            DwfData.logStat = Status.NO
-        if DwfData.fCorrupted:
-            DwfData.logError = local_time + "Samples could be corrupted! Reduce frequency"
-            DwfData.logStat = Status.NO
-
 
 # animation function.  This is called sequentially
 def update_pictures(i):
@@ -294,7 +234,7 @@ if __name__ == "__main__":
     os.system('cls' if os.name == 'nt' else 'clear')
 
     Device.Check_device()
-    Open_device()
+    Device.Open_device()
     MenuControll.menu_header()
 
     t1 = threading.Thread(target=commands_and_menu, args=())

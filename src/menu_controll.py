@@ -165,7 +165,6 @@ class MenuControll:
     def run():
         MenuControll.menu_parameters()
         user_input = 0
-        # MenuControll.generate_menu()
         user_input = input("Get param: \t ")
         if not (user_input == ''):
             MenuControll.execute(user_input)
