@@ -39,11 +39,11 @@ def Start_AD2():
 
     while (ScanParam.scan != Status.EXIT):
         
-        dxy = 2 * ScanParam.oxy / resolution
+        dxy = 2 * ScanParam.oxy / (resolution - 1)
+
+        d1 = (ImCont.x * dxy)  - (ScanParam.oxy)
+        d2 = (ImCont.y * dxy)  - (ScanParam.oxy)
         
-        d1 = (ImCont.x * dxy) + ImCont.x - (ScanParam.oxy)
-        d2 = (ImCont.y * dxy) + ImCont.y - (ScanParam.oxy)
-        print( 'dxy: ' + str(dxy) + ", d1: " + str(d1) + ", d2: " + str(d2) + ", x:" + str(ImCont.x) + ", y:" + str(ImCont.y) + ", oy:" + str(ImCont.oY))
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(0), AnalogOutNodeCarrier, c_double(d1))
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
 
