@@ -2,7 +2,7 @@ import sys
 import time
 
 from src.dwfconstants import *
-from src.scan_data import Dwf, ImCont, PictureData, ScanSample, DwfData, ScanParam, Status, PictureSCS
+from src.scan_data import Dwf, ImCont, PictureData, SampleMode, DwfData, ScanParam, Status, PictureSCS
 from src.files_operation import FileOperations
 
 
@@ -42,9 +42,9 @@ class Device:
         Dwf.dw.FDwfAnalogInChannelEnableSet(Dwf.hdwf, c_int(0), c_bool(True))
         Dwf.dw.FDwfAnalogInChannelEnableSet(Dwf.hdwf, c_int(1), c_bool(True))
         Dwf.dw.FDwfAnalogInAcquisitionModeSet(Dwf.hdwf, acqmodeRecord)
-        # dwfAnalogInBufferSizeSet(Dwf.hdwf, c_int(ScanSample.sample))
-        Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, DwfData.hzAcq[0])
-        Dwf.dw.FDwfAnalogInRecordLengthSet(Dwf.hdwf, c_double((ScanSample.sample/DwfData.hzAcq[0].value) - 1)) 
+        # dwfAnalogInBufferSizeSet(Dwf.hdwf, c_int(SampleMode.sample))
+        Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, SampleMode.hzAcq[0])
+        Dwf.dw.FDwfAnalogInRecordLengthSet(Dwf.hdwf, c_double((SampleMode.sample/SampleMode.hzAcq[0].value) - 1)) 
         
         
     def Set_signal_output():
@@ -59,7 +59,7 @@ class Device:
 
         Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
 
-        while csamples < ScanSample.sample:
+        while csamples < SampleMode.sample:
             Dwf.dw.FDwfAnalogInStatus(Dwf.hdwf, c_int(1), byref(Dwf.sts))
             if csamples == 0 and (Dwf.sts == DwfStateConfig or Dwf.sts == DwfStatePrefill or Dwf.sts == DwfStateArmed) :
                 continue # Acquisition not yet started.
@@ -76,11 +76,11 @@ class Device:
             if DwfData.cAvailable.value==0 :
                 continue
 
-            if csamples+DwfData.cAvailable.value > ScanSample.sample :
-                DwfData.cAvailable = c_int(ScanSample.sample-csamples)
+            if csamples+DwfData.cAvailable.value > SampleMode.sample :
+                DwfData.cAvailable = c_int(SampleMode.sample-csamples)
             
-            Dwf.dw.FDwfAnalogInStatusData(Dwf.hdwf, c_int(0), byref(ScanSample.DataCH1, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 1 data
-            Dwf.dw.FDwfAnalogInStatusData(Dwf.hdwf, c_int(1), byref(ScanSample.DataCH2, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 2 data
+            Dwf.dw.FDwfAnalogInStatusData(Dwf.hdwf, c_int(0), byref(SampleMode.DataCH1, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 1 data
+            Dwf.dw.FDwfAnalogInStatusData(Dwf.hdwf, c_int(1), byref(SampleMode.DataCH2, sizeof(c_double)*csamples), DwfData.cAvailable) # get channel 2 data
             csamples += DwfData.cAvailable.value
             
             if(ScanParam.scan == Status.EXIT):

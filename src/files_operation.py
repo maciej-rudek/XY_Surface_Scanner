@@ -6,7 +6,7 @@ import matplotlib
 from pathlib import Path
 from dataclasses import dataclass
 
-from src.scan_data import PictureData, DwfData, ScanParam, ScanSample, Logtime
+from src.scan_data import PictureData, DwfData, ScanParam, SampleMode, Logtime
 
 class FileOperations:
     
@@ -68,13 +68,13 @@ class FileOperations:
         f.write("" + time_string + "\n")
         f.write("=" * WIDTH + "\n")
         
-        f.write("Scan sample: \t" + str(ScanSample.sample) + "\n")
+        f.write("Scan sample: \t" + str(SampleMode.sample) + "\n")
         f.write("Resolution: \t"  + str(ScanParam.resolution) + " px \n")
         f.write("Scan area: \t"  + str(ScanParam.area) + " % \n")
         f.write("Scan area: \t"  + str(ScanParam.oxy) + " V \n")
         f.write("Offset X: \t"  + str(ScanParam.offset_x) + "\n")
         f.write("Offset Y: \t"  + str(ScanParam.offset_y) + "\n")
-        f.write("Scan freq: \t" + str(DwfData.hzAcq[0].value) + "\n")
+        f.write("Scan freq: \t" + str(SampleMode.hzAcq[0].value) + "\n")
         
         f.write("-" * WIDTH + "\n")
         

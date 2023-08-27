@@ -10,8 +10,8 @@ from src.dwfconstants import *
 from matplotlib import pyplot as plt
 from matplotlib import animation
 
-from src.scan_data import Dwf, ImCont, PictureData, ScanSample, DwfData, ScanParam, Status, PictureSCS
-from src.menu_controll import MenuControll 
+from src.scan_data import Dwf, ImCont, PictureData, SampleMode, DwfData, ScanParam, Status, PictureSCS
+from src.menu.menu_controll import MenuControll 
 from src.files_operation import FileOperations
 from src.device_configuration import Device #, start_osciloscope #Check_device
 
@@ -43,36 +43,36 @@ def Start_AD2():
         
         d1 = (ImCont.x * dxy) + ImCont.x - (ScanParam.oxy)
         d2 = (ImCont.y * dxy) + ImCont.y - (ScanParam.oxy)
-        
+        print( 'dxy: ' + str(dxy) + ", d1: " + str(d1) + ", d2: " + str(d2) + ", x:" + str(ImCont.x) + ", y:" + str(ImCont.y) + ", oy:" + str(ImCont.oY))
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(0), AnalogOutNodeCarrier, c_double(d1))
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
-        
+
         Device.start_osciloscope()
 
-        if(DwfData.hzAcq[0] != DwfData.hzAcq[1]):
-            DwfData.hzAcq[1] = DwfData.hzAcq[0]
-            Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, DwfData.hzAcq[0])
-            Dwf.dw.FDwfAnalogInRecordLengthSet(Dwf.hdwf, c_double((ScanSample.sample/DwfData.hzAcq[0].value) - 1))
+        if(SampleMode.hzAcq[0] != SampleMode.hzAcq[1]):
+            SampleMode.hzAcq[1] = SampleMode.hzAcq[0]
+            Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, SampleMode.hzAcq[0])
+            Dwf.dw.FDwfAnalogInRecordLengthSet(Dwf.hdwf, c_double((SampleMode.sample/SampleMode.hzAcq[0].value) - 1))
             DwfData.logError = "Data frequency success updated in device"
 
-        for i in range(ScanSample.sample):
-            ScanSample.f_ch1[i] = float(ScanSample.DataCH1[i])
-            ScanSample.f_ch2[i] = float(ScanSample.DataCH2[i])
+        for i in range(SampleMode.sample):
+            SampleMode.f_ch1[i] = float(SampleMode.DataCH1[i])
+            SampleMode.f_ch2[i] = float(SampleMode.DataCH2[i])
         
-        maks = ScanSample.sample
+        maks = SampleMode.sample
         marg = 0.1 * maks
         
         if(ScanParam.scan == Status.EXIT):
             break
 
-        # PictureData.CH2[y, ImCont.x] = np.mean(ScanSample.f_ch2) 
+        # PictureData.CH2[y, ImCont.x] = np.mean(SampleMode.f_ch2) 
 
         if (ScanParam.scan == Status.START):
             if (stan == 0):
                 ImCont.dir = 0
                 ImCont.x = ImCont.x + 1
-                PictureData.CH1[ImCont.y, ImCont.x] = np.mean(ScanSample.f_ch1[int(marg):int(maks-marg)])
-                PictureData.CH2[ImCont.y, ImCont.x] = np.mean(ScanSample.f_ch2[int(marg):int(maks-marg)]) 
+                PictureData.CH1[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch1[int(marg):int(maks-marg)])
+                PictureData.CH2[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch2[int(marg):int(maks-marg)]) 
                 if (ImCont.x == (resolution - 1)):
                     stan = 1
                 
@@ -84,8 +84,8 @@ def Start_AD2():
 
             elif (stan == 2):
                 ImCont.dir = 1
-                PictureData.CH3[ImCont.y, ImCont.x] = np.mean(np.mean(ScanSample.f_ch1[int(marg):int(maks-marg)]))
-                PictureData.CH4[ImCont.y, ImCont.x] = np.mean(ScanSample.f_ch2[int(marg):int(maks-marg)]) 
+                PictureData.CH3[ImCont.y, ImCont.x] = np.mean(np.mean(SampleMode.f_ch1[int(marg):int(maks-marg)]))
+                PictureData.CH4[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch2[int(marg):int(maks-marg)]) 
                 ImCont.x = ImCont.x - 1
                 if (ImCont.x == 0):
                     stan = 3
@@ -154,7 +154,7 @@ def update_pictures(i):
     ax5.imshow(PictureData.CH3,  cmap='Oranges_r', interpolation='none') 
     ax6.imshow(PictureData.CH4,  cmap='afmhot', interpolation='none')
     
-    x = np.linspace(0, ScanSample.sample, ScanSample.sample)
+    x = np.linspace(0, SampleMode.sample, SampleMode.sample)
     ox = np.linspace(1,resolution,resolution)
    
     if(i % 2 == 1):
@@ -163,7 +163,7 @@ def update_pictures(i):
         ax3.tick_params(axis='x', colors="C1")
         ax3.tick_params(axis='y', colors="C1")
         if(ScanParam.scan == Status.STOP):
-            ax3.plot(x, ScanSample.DataCH1, color="C1")
+            ax3.plot(x, SampleMode.DataCH1, color="C1")
         else:
             if(ImCont.dir == 0):
                 if(ImCont.oY == 0):
@@ -184,8 +184,8 @@ def update_pictures(i):
         ax4.tick_params(axis='x', colors="C0")
         ax4.tick_params(axis='y', colors="C0")
         if(ScanParam.scan == Status.STOP):
-            # ax4.plot(x, ScanSample.DataCH2, color="C0")
-            line1.set_ydata(ScanSample.DataCH2)
+            # ax4.plot(x, SampleMode.DataCH2, color="C0")
+            line1.set_ydata(SampleMode.DataCH2)
             # fig.canvas.draw()
         else:
             if(ImCont.dir == 0):
@@ -212,7 +212,7 @@ def commands_and_menu():
 
 def on_close(event):
     FileOperations.save_manager_files()
-    MenuControll.menu_parameters()
+    MenuControll.show_menu_parameters()
     end_threads()
     quit()
 

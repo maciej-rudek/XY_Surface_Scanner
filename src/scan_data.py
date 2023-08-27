@@ -15,6 +15,8 @@ class Status(Enum):
     SAVE = "save"
     YES = "yes"
     NO = "no"
+    SAMPLE = "sample"
+    CONTINUOUS = "continuous"
 
 @dataclass
 class Logtime:
@@ -24,7 +26,7 @@ class Logtime:
     
 @dataclass
 class DwfData:
-    hzAcq = [c_double(450000), c_double(450000)]
+    # hzAcq = [c_double(450000), c_double(450000)]
     cAvailable = c_int()
     cLost = c_int()
     cCorrupted = c_int()
@@ -38,6 +40,7 @@ class DwfData:
     title = "SCAN"
     directory = "NoN"
     files = "000"
+    clear_menu = False
 
 
 @dataclass
@@ -66,21 +69,33 @@ class PictureSCS:
 @dataclass
 class ScanParam:
     scan = Status.STOP
-    resolution = 200
+    mode = Status.SAMPLE
+    resolution = 20
     area = 100
     oxy = MAX_VOLTAGE * area / MAX_AREA
     offset_x = 0
     offset_y = 0
 
 @dataclass
-class ScanSample:
+class SampleMode: #ScanSample:
     sample = 10000
+    hzAcq = [c_double(450000), c_double(450000)]
     DataCH1: c_double = (c_double*sample)()
     DataCH2: c_double = (c_double*sample)()
     f_ch1 = np.arange(sample, dtype=float)
     f_ch2 = np.arange(sample, dtype=float)
     
-
+@dataclass
+class ContinuousMode:
+    sample = 10000
+    hzAcq = [c_double(450000), c_double(450000)]
+    phase_ch1 = 0.0
+    phase_ch2 = 0.0
+    DataCH1: c_double = (c_double*sample)()
+    DataCH2: c_double = (c_double*sample)()
+    f_ch1 = np.arange(sample, dtype=float)
+    f_ch2 = np.arange(sample, dtype=float)
+    
 @dataclass
 class PictureData:
     CH1: float = np.zeros((ScanParam.resolution, ScanParam.resolution))
