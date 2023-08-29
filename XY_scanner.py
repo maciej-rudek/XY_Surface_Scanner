@@ -41,8 +41,8 @@ def Start_AD2():
         
         dxy = 2 * ScanParam.oxy / (resolution - 1)
 
-        d1 = (ImCont.x * dxy)  - (ScanParam.oxy)
-        d2 = (ImCont.y * dxy)  - (ScanParam.oxy)
+        d1 = (ImCont.x * dxy) - (ScanParam.oxy) + ScanParam.offset_x
+        d2 = (ImCont.y * dxy) - (ScanParam.oxy) + ScanParam.offset_y
         
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(0), AnalogOutNodeCarrier, c_double(d1))
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
@@ -69,35 +69,40 @@ def Start_AD2():
 
         if (ScanParam.scan == Status.START):
             if (stan == 0):
-                ImCont.dir = 0
-                ImCont.x = ImCont.x + 1
-                PictureData.CH1[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch1[int(marg):int(maks-marg)])
-                PictureData.CH2[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch2[int(marg):int(maks-marg)]) 
-                if (ImCont.x == (resolution - 1)):
+                if (ImCont.x == (resolution)):
                     stan = 1
+                else:
+                    ImCont.dir = 0
+                    PictureData.CH1[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch1[int(marg):int(maks-marg)])
+                    PictureData.CH2[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch2[int(marg):int(maks-marg)]) 
+                ImCont.x = ImCont.x + 1
                 
             elif (stan == 1):
-                ImCont.x = ImCont.x
+                ImCont.x = ImCont.x - 2
                 stan = 2
                 # if (parametrImCont.y['tImCont.ype'] == 'snake'):
                 # ImCont.y = ImCont.y + 1
 
             elif (stan == 2):
-                ImCont.dir = 1
-                PictureData.CH3[ImCont.y, ImCont.x] = np.mean(np.mean(SampleMode.f_ch1[int(marg):int(maks-marg)]))
-                PictureData.CH4[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch2[int(marg):int(maks-marg)]) 
-                ImCont.x = ImCont.x - 1
-                if (ImCont.x == 0):
+                if (ImCont.x == -1):
+                    ImCont.x = 0
                     stan = 3
+                else:
+                    ImCont.dir = 1
+                    PictureData.CH3[ImCont.y, ImCont.x] = np.mean(np.mean(SampleMode.f_ch1[int(marg):int(maks-marg)]))
+                    PictureData.CH4[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch2[int(marg):int(maks-marg)]) 
+                ImCont.x = ImCont.x - 1
+               
                     
             elif (stan == 3):                 
-                ImCont.x = ImCont.x
+                ImCont.x = ImCont.x + 1
                 ImCont.y = ImCont.y + 1
                 ImCont.oY = ImCont.oY + 1
                 PictureData.line = PictureData.line + 1
                 if(ImCont.oY == resolution):
                     FileOperations.save_manager_files()
                     ImCont.oY = 0
+                    # TODO: Wait for action from user - befor stop 
                     ScanParam.scan = Status.STOP
                 stan = 0
                 # print(PictureData.line, old_PictureData.line)
