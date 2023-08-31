@@ -13,7 +13,8 @@ from matplotlib import animation
 from src.scan_data import Dwf, ImCont, PictureData, SampleMode, DwfData, ScanParam, Status, PictureSCS
 from src.menu.menu_controll import MenuControll 
 from src.files_operation import FileOperations
-from src.device_configuration import Device #, start_osciloscope #Check_device
+from src.device_configuration import Device
+from src.scan_mode.sample import Mode_sample
 
 np.random.seed(19680801)
 
@@ -33,7 +34,6 @@ line1, = ax4.plot(x, y, 'b-')
 
 
 def Start_AD2():
-    stan = 0
 
     resolution = ScanParam.resolution
 
@@ -48,97 +48,11 @@ def Start_AD2():
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
 
         Device.start_osciloscope()
-
-        if(SampleMode.hzAcq[0] != SampleMode.hzAcq[1]):
-            SampleMode.hzAcq[1] = SampleMode.hzAcq[0]
-            Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, SampleMode.hzAcq[0])
-            Dwf.dw.FDwfAnalogInRecordLengthSet(Dwf.hdwf, c_double((SampleMode.sample/SampleMode.hzAcq[0].value) - 1))
-            DwfData.logError = "Data frequency success updated in device"
-
-        for i in range(SampleMode.sample):
-            SampleMode.f_ch1[i] = float(SampleMode.DataCH1[i])
-            SampleMode.f_ch2[i] = float(SampleMode.DataCH2[i])
+        Mode_sample.Scan()
         
-        maks = SampleMode.sample
-        marg = 0.1 * maks
+        if(ScanParam.scan == Status.STOP):
+            Mode_sample.Reset_Scan()
         
-        if(ScanParam.scan == Status.EXIT):
-            break
-
-        # PictureData.CH2[y, ImCont.x] = np.mean(SampleMode.f_ch2) 
-
-        if (ScanParam.scan == Status.START):
-            if (stan == 0):
-                if (ImCont.x == (resolution)):
-                    stan = 1
-                else:
-                    ImCont.dir = 0
-                    PictureData.CH1[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch1[int(marg):int(maks-marg)])
-                    PictureData.CH2[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch2[int(marg):int(maks-marg)]) 
-                ImCont.x = ImCont.x + 1
-                
-            elif (stan == 1):
-                ImCont.x = ImCont.x - 2
-                stan = 2
-                # if (parametrImCont.y['tImCont.ype'] == 'snake'):
-                # ImCont.y = ImCont.y + 1
-
-            elif (stan == 2):
-                if (ImCont.x == -1):
-                    ImCont.x = 0
-                    stan = 3
-                else:
-                    ImCont.dir = 1
-                    PictureData.CH3[ImCont.y, ImCont.x] = np.mean(np.mean(SampleMode.f_ch1[int(marg):int(maks-marg)]))
-                    PictureData.CH4[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch2[int(marg):int(maks-marg)]) 
-                ImCont.x = ImCont.x - 1
-               
-                    
-            elif (stan == 3):                 
-                ImCont.x = ImCont.x + 1
-                ImCont.y = ImCont.y + 1
-                ImCont.oY = ImCont.oY + 1
-                PictureData.line = PictureData.line + 1
-                if(ImCont.oY == resolution):
-                    FileOperations.save_manager_files()
-                    ImCont.oY = 0
-                    # TODO: Wait for action from user - befor stop 
-                    ScanParam.scan = Status.STOP
-                stan = 0
-                # print(PictureData.line, old_PictureData.line)
-                # Tutaj dodac kalkulacje srredniej dla X,Y dla kazdego kanału i zamiana 0 na srednia z poprzedniej linii pomiarowej
-
-        else:
-            ImCont.dir = 0
-            stan = 0
-            ImCont.x = 0
-            ImCont.y = 0
-            ImCont.oY = 0
-            PictureData.line = 0
-            PictureData.CH1 = np.zeros((resolution, resolution))
-            PictureData.CH2 = np.zeros((resolution, resolution))
-            PictureData.CH3 = np.zeros((resolution, resolution))
-            PictureData.CH4 = np.zeros((resolution, resolution))
-        
-        if ((PictureData.line > 0) and (PictureData.line < resolution) and (PictureSCS.interpolate == Status.YES) ):
-            A = PictureData.CH1[PictureData.line,0:resolution]
-            B = PictureData.CH2[PictureData.line,0:resolution]
-
-            # (c*np.mean(w)+(np.max(w)-np.min(w))-abs((np.min(w))) 
-            # PictureData.CH1[0:resolution,(PictureData.line+1):resolution] = np.mean(A)
-            #np.random.rand(((resolution - (PictureData.line+1)),resolution)) *  (np.mean(A)+(np.max(A)-np.min(A))-abs((np.min(A))))
-            PictureData.CH1[(PictureData.line+1):resolution,0:resolution] = np.resize(A,((resolution - (PictureData.line+1)),resolution)) 
-            PictureData.CH2[(PictureData.line+1):resolution,0:resolution] = np.resize(B,((resolution - (PictureData.line+1)),resolution)) 
-            A = PictureData.CH3[PictureData.line,0:resolution]
-            B = PictureData.CH4[PictureData.line,0:resolution]
-            PictureData.CH3[(PictureData.line+1):resolution,0:resolution] = np.resize(A,((resolution - (PictureData.line+1)),resolution)) 
-            PictureData.CH4[(PictureData.line+1):resolution,0:resolution] = np.resize(B,((resolution - (PictureData.line+1)),resolution)) 
-        else:
-            PictureData.CH1[(PictureData.line+1):resolution,0:resolution] = 0 
-            PictureData.CH2[(PictureData.line+1):resolution,0:resolution] = 0
-            PictureData.CH3[(PictureData.line+1):resolution,0:resolution] = 0
-            PictureData.CH4[(PictureData.line+1):resolution,0:resolution] = 0
-        #time.sleep(0.02)
         
 
 # animation function.  This is called sequentially
