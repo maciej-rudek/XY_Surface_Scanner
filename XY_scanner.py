@@ -1,3 +1,5 @@
+from asyncio.windows_events import NULL
+from turtle import color
 import matplotlib
 import threading
 import time
@@ -6,14 +8,20 @@ import numpy as np
 import os
 
 from ctypes import *
-from src.dwfconstants import *
 from matplotlib import pyplot as plt
 from matplotlib import animation
+from src.scan_data import ContinuousMode
 
-from src.scan_data import Dwf, ImCont, PictureData, SampleMode, DwfData, ScanParam, Status, PictureSCS
+from src.scan_data import ImCont, PictureData, SampleMode, ScanParam, Status
 from src.menu.menu_controll import MenuControll 
 from src.files_operation import FileOperations
-from src.device_configuration import Device #, start_osciloscope #Check_device
+from src.device_conf.dwfconstants import *
+from src.device_conf.device import Device
+from src.device_conf.device_sample import Device_sample
+from src.device_conf.device_conti import Device_conti
+from src.scan_mode.continuous import Mode_continuous
+from src.scan_mode.sample import Mode_sample
+from src.scan_mode.special import Once
 
 np.random.seed(19680801)
 
@@ -33,116 +41,32 @@ line1, = ax4.plot(x, y, 'b-')
 
 
 def Start_AD2():
-    stan = 0
-
-    resolution = ScanParam.resolution
-
     while (ScanParam.scan != Status.EXIT):
         
-        dxy = 2 * ScanParam.oxy / (resolution - 1)
-
-        d1 = (ImCont.x * dxy) - (ScanParam.oxy) + ScanParam.offset_x
-        d2 = (ImCont.y * dxy) - (ScanParam.oxy) + ScanParam.offset_y
+        if(ScanParam.mode != ScanParam.mode_new):
+            ScanParam.mode = ScanParam.mode_new
+            Mode_sample.Reset_Scan()
+            Device.Configure_setup_mode()
         
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(0), AnalogOutNodeCarrier, c_double(d1))
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
-
-        Device.start_osciloscope()
-
-        if(SampleMode.hzAcq[0] != SampleMode.hzAcq[1]):
-            SampleMode.hzAcq[1] = SampleMode.hzAcq[0]
-            Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, SampleMode.hzAcq[0])
-            Dwf.dw.FDwfAnalogInRecordLengthSet(Dwf.hdwf, c_double((SampleMode.sample/SampleMode.hzAcq[0].value) - 1))
-            DwfData.logError = "Data frequency success updated in device"
-
-        for i in range(SampleMode.sample):
-            SampleMode.f_ch1[i] = float(SampleMode.DataCH1[i])
-            SampleMode.f_ch2[i] = float(SampleMode.DataCH2[i])
+        if (ScanParam.mode == Status.SAMPLE):
+            Device_sample.Upadate_sample_oCH()
+            Device_sample.Start_osciloscope()
+            Mode_sample.Scan()
+            Device_sample.Update_freqency()
+            
+        if (ScanParam.mode == Status.CONTINUOUS):
+            if (ScanParam.scan == Status.START):
+                Device_conti.First_configuration()
+            Mode_continuous.Scan()
         
-        maks = SampleMode.sample
-        marg = 0.1 * maks
+        if(ScanParam.scan == Status.STOP):
+            Device_conti.Switch_off_output()
+            Once.Reset_once()
+            Mode_sample.Reset_Scan()
         
-        if(ScanParam.scan == Status.EXIT):
-            break
-
-        # PictureData.CH2[y, ImCont.x] = np.mean(SampleMode.f_ch2) 
-
-        if (ScanParam.scan == Status.START):
-            if (stan == 0):
-                if (ImCont.x == (resolution)):
-                    stan = 1
-                else:
-                    ImCont.dir = 0
-                    PictureData.CH1[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch1[int(marg):int(maks-marg)])
-                    PictureData.CH2[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch2[int(marg):int(maks-marg)]) 
-                ImCont.x = ImCont.x + 1
-                
-            elif (stan == 1):
-                ImCont.x = ImCont.x - 2
-                stan = 2
-                # if (parametrImCont.y['tImCont.ype'] == 'snake'):
-                # ImCont.y = ImCont.y + 1
-
-            elif (stan == 2):
-                if (ImCont.x == -1):
-                    ImCont.x = 0
-                    stan = 3
-                else:
-                    ImCont.dir = 1
-                    PictureData.CH3[ImCont.y, ImCont.x] = np.mean(np.mean(SampleMode.f_ch1[int(marg):int(maks-marg)]))
-                    PictureData.CH4[ImCont.y, ImCont.x] = np.mean(SampleMode.f_ch2[int(marg):int(maks-marg)]) 
-                ImCont.x = ImCont.x - 1
-               
-                    
-            elif (stan == 3):                 
-                ImCont.x = ImCont.x + 1
-                ImCont.y = ImCont.y + 1
-                ImCont.oY = ImCont.oY + 1
-                PictureData.line = PictureData.line + 1
-                if(ImCont.oY == resolution):
-                    FileOperations.save_manager_files()
-                    ImCont.oY = 0
-                    # TODO: Wait for action from user - befor stop 
-                    ScanParam.scan = Status.STOP
-                stan = 0
-                # print(PictureData.line, old_PictureData.line)
-                # Tutaj dodac kalkulacje srredniej dla X,Y dla kazdego kanału i zamiana 0 na srednia z poprzedniej linii pomiarowej
-
-        else:
-            ImCont.dir = 0
-            stan = 0
-            ImCont.x = 0
-            ImCont.y = 0
-            ImCont.oY = 0
-            PictureData.line = 0
-            PictureData.CH1 = np.zeros((resolution, resolution))
-            PictureData.CH2 = np.zeros((resolution, resolution))
-            PictureData.CH3 = np.zeros((resolution, resolution))
-            PictureData.CH4 = np.zeros((resolution, resolution))
-        
-        if ((PictureData.line > 0) and (PictureData.line < resolution) and (PictureSCS.interpolate == Status.YES) ):
-            A = PictureData.CH1[PictureData.line,0:resolution]
-            B = PictureData.CH2[PictureData.line,0:resolution]
-
-            # (c*np.mean(w)+(np.max(w)-np.min(w))-abs((np.min(w))) 
-            # PictureData.CH1[0:resolution,(PictureData.line+1):resolution] = np.mean(A)
-            #np.random.rand(((resolution - (PictureData.line+1)),resolution)) *  (np.mean(A)+(np.max(A)-np.min(A))-abs((np.min(A))))
-            PictureData.CH1[(PictureData.line+1):resolution,0:resolution] = np.resize(A,((resolution - (PictureData.line+1)),resolution)) 
-            PictureData.CH2[(PictureData.line+1):resolution,0:resolution] = np.resize(B,((resolution - (PictureData.line+1)),resolution)) 
-            A = PictureData.CH3[PictureData.line,0:resolution]
-            B = PictureData.CH4[PictureData.line,0:resolution]
-            PictureData.CH3[(PictureData.line+1):resolution,0:resolution] = np.resize(A,((resolution - (PictureData.line+1)),resolution)) 
-            PictureData.CH4[(PictureData.line+1):resolution,0:resolution] = np.resize(B,((resolution - (PictureData.line+1)),resolution)) 
-        else:
-            PictureData.CH1[(PictureData.line+1):resolution,0:resolution] = 0 
-            PictureData.CH2[(PictureData.line+1):resolution,0:resolution] = 0
-            PictureData.CH3[(PictureData.line+1):resolution,0:resolution] = 0
-            PictureData.CH4[(PictureData.line+1):resolution,0:resolution] = 0
-        #time.sleep(0.02)
-        
-
+    
 # animation function.  This is called sequentially
-def update_pictures(i):
+def Update_pictures(frames):
     resolution = ScanParam.resolution
 
     ax1.cla()
@@ -159,27 +83,36 @@ def update_pictures(i):
     ax5.imshow(PictureData.CH3,  cmap='Oranges_r', interpolation='none') 
     ax6.imshow(PictureData.CH4,  cmap='afmhot', interpolation='none')
     
-    x = np.linspace(0, SampleMode.sample, SampleMode.sample)
-    ox = np.linspace(1,resolution,resolution)
+    # x = np.linspace(0, SampleMode.sample, SampleMode.sample)
+    ox = np.linspace(1, resolution, resolution)
    
-    if(i % 2 == 1):
+    if(frames % 2 == 1):
         ax3.clear()
         ax3.set_ylabel("CH 1 - TOPO", color="C1")
         ax3.tick_params(axis='x', colors="C1")
         ax3.tick_params(axis='y', colors="C1")
         if(ScanParam.scan == Status.STOP):
-            ax3.plot(x, SampleMode.DataCH1, color="C1")
-        else:
-            if(ImCont.dir == 0):
-                if(ImCont.oY == 0):
-                    ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], color="C1")
-                else:
-                    ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH1[(ImCont.oY-1),1:resolution], color="C1")
+            if(ScanParam.mode == Status.SAMPLE):
+                x = np.linspace(0, SampleMode.sample, SampleMode.sample)
+                ax3.plot(x[1:SampleMode.sample], SampleMode.DataCH1[1:SampleMode.sample], color="C1")
             else:
-                if(ImCont.oY == 0):
-                    ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], color="C1")
+                x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
+                ax3.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch1[1:ContinuousMode.buf_size], color="C1")
+        else: #SCAN 
+            if(ScanParam.mode == Status.SAMPLE):
+                if(ImCont.dir == 0):
+                    if(ImCont.oY == 0):
+                        ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], color="C1")
+                    else:
+                        ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH1[(ImCont.oY-1),1:resolution], color="C1")
                 else:
-                    ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH3[(ImCont.oY-1),1:resolution], color="C1")
+                    if(ImCont.oY == 0):
+                        ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], color="C1")
+                    else:
+                        ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH3[(ImCont.oY-1),1:resolution], color="C1")
+            else:
+                x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
+                ax3.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch1[1:ContinuousMode.buf_size], color="C1")
     else:
         ax4.clear()
         ax4.yaxis.tick_right()
@@ -189,20 +122,28 @@ def update_pictures(i):
         ax4.tick_params(axis='x', colors="C0")
         ax4.tick_params(axis='y', colors="C0")
         if(ScanParam.scan == Status.STOP):
-            # ax4.plot(x, SampleMode.DataCH2, color="C0")
-            line1.set_ydata(SampleMode.DataCH2)
-            # fig.canvas.draw()
-        else:
-            if(ImCont.dir == 0):
-                if(ImCont.oY == 0):
-                    ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], color="C0")
-                else:
-                    ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH2[(ImCont.oY-1),1:resolution], color="C0")
+            if(ScanParam.mode == Status.SAMPLE):
+                x = np.linspace(0, SampleMode.sample, SampleMode.sample)
+                ax4.plot(x[1:SampleMode.sample], SampleMode.DataCH2[1:SampleMode.sample], color="C0")
             else:
-                if(ImCont.oY == 0):
-                    ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], color="C0")
+                x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
+                ax4.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch2[1:ContinuousMode.buf_size], color="C0")
+        else: # SCAN
+            if (ScanParam.mode == Status.SAMPLE):
+                if(ImCont.dir == 0):
+                    if(ImCont.oY == 0):
+                        ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], color="C0")
+                    else:
+                        ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH2[(ImCont.oY-1),1:resolution], color="C0")
                 else:
-                    ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH4[(ImCont.oY-1),1:resolution], color="C0")
+                    if(ImCont.oY == 0):
+                        ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], color="C0")
+                    else:
+                        ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH4[(ImCont.oY-1),1:resolution], color="C0")
+            else:
+                x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
+                ax4.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch2[1:ContinuousMode.buf_size], color="C0")
+
    
 
 def commands_and_menu():
@@ -223,7 +164,7 @@ def on_close(event):
 
 
 def end_threads():
-    ScanParam.scan = Status.EXIT
+    # ScanParam.scan = Status.EXIT
     print("Locking all dragons in dungeons o-]===> ")
     time.sleep(2)
     if(t1.is_alive()):
@@ -240,6 +181,8 @@ if __name__ == "__main__":
 
     Device.Check_device()
     Device.Open_device()
+    Device.Configure_setup_mode()
+        
     MenuControll.menu_header()
 
     t1 = threading.Thread(target=commands_and_menu, args=())
@@ -249,12 +192,16 @@ if __name__ == "__main__":
     t2.start()
 
     fig.canvas.mpl_connect('close_event', on_close)
-    ani = animation.FuncAnimation(fig, update_pictures, frames=50, interval=20)
+    ani = animation.FuncAnimation(fig, Update_pictures, frames=50, interval=20)
     
     plt.show()
     
+    while(ScanParam.scan != Status.EXIT):
+        NULL
+        
     # plt.close()
     # on_close()
     end_threads()
     MenuControll.menu_end()
+    Device.Close_ALL()
     quit()

@@ -209,3 +209,11 @@ stsStop		= c_ubyte(10)
 trigcondRisingPositive   = c_int(0)
 trigcondFallingNegative  = c_int(1)
 
+#Output channels - DAC's
+oCH_A = c_int(0)
+oCH_B = c_int(1)
+
+#Input channels - ADC's
+iCH_0 = c_int(0)
+iCH_1 = c_int(1)
+

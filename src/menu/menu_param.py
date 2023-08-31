@@ -4,8 +4,9 @@ import numpy as np
 
 from enum import Enum
 from ctypes import *
-from src.scan_data import ImCont, SampleMode, ContinuousMode, Status, ScanParam, DwfData, Logtime, PictureData, PictureSCS
+from src.scan_data import ImCont, SampleMode, ContinuousMode, Status, ScanParam, DwfData, PictureData, PictureSCS
 from src.files_operation import FileOperations
+from src.device_conf.device import Device
 
 
 class MenuParams:
@@ -72,17 +73,17 @@ class MenuParams:
     
     @staticmethod
     def param_phase1(data_params):
-        """DAC 1 - phase shift"""
+        """oCH 1 - phase shift"""
         if(ScanParam.mode == Status.CONTINUOUS):
-            ContinuousMode.phase_ch1 = float(data_params)
+            ContinuousMode.phase_ch1 = c_double(data_params)
         else:
             DwfData.logError = "NO Continuous mode ON !"
 
     @staticmethod
     def param_phase2(data_params):
-        """DAC 2 - phase shift"""
+        """oCH 2 - phase shift"""
         if(ScanParam.mode == Status.CONTINUOUS):
-            ContinuousMode.phase_ch2 = float(data_params)
+            ContinuousMode.phase_ch2 = c_double(data_params)
         else:
             DwfData.logError = "NO Continuous mode ON !"
         
@@ -127,6 +128,6 @@ class MenuParams:
     @staticmethod
     def param_mode(data_params):
         """Scan Modes [sample, continuous]"""
-        ScanParam.mode = Status(data_params)
+        ScanParam.mode_new = Status(data_params)
         DwfData.clear_menu = True
 
