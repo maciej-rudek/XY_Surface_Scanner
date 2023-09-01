@@ -4,6 +4,7 @@ import numpy as np
 
 from enum import Enum
 from ctypes import *
+from XY_Surface_Scanner.src.device_configuration import Device
 from src.scan_data import Dwf, ImCont, SampleMode, ContinuousMode, Status, ScanParam, DwfData, Logtime, PictureData, PictureSCS
 from src.files_operation import FileOperations
 
@@ -30,11 +31,7 @@ class Mode_sample:
     def Scan():
         resolution = ScanParam.resolution
         
-        if(SampleMode.hzAcq[0] != SampleMode.hzAcq[1]):
-            SampleMode.hzAcq[1] = SampleMode.hzAcq[0]
-            Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, SampleMode.hzAcq[0])
-            Dwf.dw.FDwfAnalogInRecordLengthSet(Dwf.hdwf, c_double((SampleMode.sample/SampleMode.hzAcq[0].value) - 1))
-            DwfData.logError = "Data frequency success updated in device"
+        Device.Update_freqency()
 
         for i in range(SampleMode.sample):
             SampleMode.f_ch1[i] = float(SampleMode.DataCH1[i])

@@ -35,20 +35,15 @@ line1, = ax4.plot(x, y, 'b-')
 
 def Start_AD2():
 
-    resolution = ScanParam.resolution
-
     while (ScanParam.scan != Status.EXIT):
         
-        dxy = 2 * ScanParam.oxy / (resolution - 1)
-
-        d1 = (ImCont.x * dxy) - (ScanParam.oxy) + ScanParam.offset_x
-        d2 = (ImCont.y * dxy) - (ScanParam.oxy) + ScanParam.offset_y
-        
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(0), AnalogOutNodeCarrier, c_double(d1))
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
-
-        Device.start_osciloscope()
-        Mode_sample.Scan()
+        if (ScanParam.mode == Status.SAMPLE):
+            Device.Upadate_DAC()
+            Device.Update_freqency()
+            Device.Start_osciloscope()
+            Mode_sample.Scan()
+        else:
+            print("continuous mode")
         
         if(ScanParam.scan == Status.STOP):
             Mode_sample.Reset_Scan()
@@ -56,7 +51,7 @@ def Start_AD2():
         
 
 # animation function.  This is called sequentially
-def update_pictures(i):
+def Update_pictures(i):
     resolution = ScanParam.resolution
 
     ax1.cla()
@@ -163,7 +158,7 @@ if __name__ == "__main__":
     t2.start()
 
     fig.canvas.mpl_connect('close_event', on_close)
-    ani = animation.FuncAnimation(fig, update_pictures, frames=50, interval=20)
+    ani = animation.FuncAnimation(fig, Update_pictures, frames=50, interval=20)
     
     plt.show()
     

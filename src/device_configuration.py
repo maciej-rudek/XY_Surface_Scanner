@@ -42,7 +42,7 @@ class Device:
         Dwf.dw.FDwfAnalogInChannelEnableSet(Dwf.hdwf, c_int(0), c_bool(True))
         Dwf.dw.FDwfAnalogInChannelEnableSet(Dwf.hdwf, c_int(1), c_bool(True))
         Dwf.dw.FDwfAnalogInAcquisitionModeSet(Dwf.hdwf, acqmodeRecord)
-        # dwfAnalogInBufferSizeSet(Dwf.hdwf, c_int(SampleMode.sample))
+        # dwfAnalog InBufferSizeSet(Dwf.hdwf, c_int(SampleMode.sample))
         Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, SampleMode.hzAcq[0])
         Dwf.dw.FDwfAnalogInRecordLengthSet(Dwf.hdwf, c_double((SampleMode.sample/SampleMode.hzAcq[0].value) - 1)) 
         
@@ -54,7 +54,25 @@ class Device:
         Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, c_int(1), AnalogOutNodeCarrier, funcDC)
 
 
-    def start_osciloscope():
+    def Update_freqency():
+        if(SampleMode.hzAcq[0] != SampleMode.hzAcq[1]):
+            SampleMode.hzAcq[1] = SampleMode.hzAcq[0]
+            Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, SampleMode.hzAcq[0])
+            Dwf.dw.FDwfAnalogInRecordLengthSet(Dwf.hdwf, c_double((SampleMode.sample/SampleMode.hzAcq[0].value) - 1))
+            DwfData.logError = "Data frequency success updated in device"
+            
+
+    def Upadate_DAC():
+        dxy = 2 * ScanParam.oxy / (ScanParam.resolution - 1)
+
+        d1 = (ImCont.x * dxy) - (ScanParam.oxy) + ScanParam.offset_x
+        d2 = (ImCont.y * dxy) - (ScanParam.oxy) + ScanParam.offset_y
+        
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(0), AnalogOutNodeCarrier, c_double(d1))
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, c_int(1), AnalogOutNodeCarrier, c_double(d2))
+        
+
+    def Start_osciloscope():
         csamples = 0
 
         Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
