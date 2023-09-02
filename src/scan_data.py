@@ -89,8 +89,9 @@ class SampleMode: #ScanSample:
 class ContinuousMode:
     sample = 10000
     hzAcq = [c_double(450000), c_double(450000)]
-    phase_ch1 = 0.0
-    phase_ch2 = 0.0
+    buf_size = c_int(1000)
+    phase_ch1 = c_double(0.0)
+    phase_ch2 = c_double(0.0)
     DataCH1: c_double = (c_double*sample)()
     DataCH2: c_double = (c_double*sample)()
     f_ch1 = np.arange(sample, dtype=float)

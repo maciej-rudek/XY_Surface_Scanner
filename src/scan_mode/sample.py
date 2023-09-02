@@ -30,8 +30,6 @@ class Mode_sample:
     @staticmethod
     def Scan():
         resolution = ScanParam.resolution
-        
-        Device.Update_freqency()
 
         for i in range(SampleMode.sample):
             SampleMode.f_ch1[i] = float(SampleMode.DataCH1[i])

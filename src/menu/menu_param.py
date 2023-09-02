@@ -72,17 +72,17 @@ class MenuParams:
     
     @staticmethod
     def param_phase1(data_params):
-        """DAC 1 - phase shift"""
+        """oCH 1 - phase shift"""
         if(ScanParam.mode == Status.CONTINUOUS):
-            ContinuousMode.phase_ch1 = float(data_params)
+            ContinuousMode.phase_ch1 = c_double(data_params)
         else:
             DwfData.logError = "NO Continuous mode ON !"
 
     @staticmethod
     def param_phase2(data_params):
-        """DAC 2 - phase shift"""
+        """oCH 2 - phase shift"""
         if(ScanParam.mode == Status.CONTINUOUS):
-            ContinuousMode.phase_ch2 = float(data_params)
+            ContinuousMode.phase_ch2 = c_double(data_params)
         else:
             DwfData.logError = "NO Continuous mode ON !"
         

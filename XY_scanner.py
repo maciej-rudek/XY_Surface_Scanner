@@ -38,9 +38,9 @@ def Start_AD2():
     while (ScanParam.scan != Status.EXIT):
         
         if (ScanParam.mode == Status.SAMPLE):
-            Device.Upadate_DAC()
-            Device.Update_freqency()
+            Device.Upadate_sample_oCH()
             Device.Start_osciloscope()
+            Device.Update_freqency()
             Mode_sample.Scan()
         else:
             print("continuous mode")
