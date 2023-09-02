@@ -4,7 +4,7 @@ import numpy as np
 
 from enum import Enum
 from ctypes import *
-from src.scan_data import ImCont, SampleMode, ContinuousMode, Status, ScanParam, DwfData, Logtime, PictureData, PictureSCS
+from src.scan_data import ImCont, SampleMode, ContinuousMode, Status, ScanParam, DwfData, PictureData, PictureSCS
 from src.files_operation import FileOperations
 
 

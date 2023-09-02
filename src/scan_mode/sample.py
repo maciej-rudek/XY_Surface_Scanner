@@ -4,8 +4,7 @@ import numpy as np
 
 from enum import Enum
 from ctypes import *
-from XY_Surface_Scanner.src.device_configuration import Device
-from src.scan_data import Dwf, ImCont, SampleMode, ContinuousMode, Status, ScanParam, DwfData, Logtime, PictureData, PictureSCS
+from src.scan_data import ImCont, SampleMode, Status, ScanParam, PictureData, PictureSCS
 from src.files_operation import FileOperations
 
 

@@ -6,14 +6,15 @@ import numpy as np
 import os
 
 from ctypes import *
-from src.dwfconstants import *
 from matplotlib import pyplot as plt
 from matplotlib import animation
 
-from src.scan_data import Dwf, ImCont, PictureData, SampleMode, DwfData, ScanParam, Status, PictureSCS
+from src.scan_data import ImCont, PictureData, SampleMode, ScanParam, Status
 from src.menu.menu_controll import MenuControll 
 from src.files_operation import FileOperations
-from src.device_configuration import Device
+from src.device_conf.dwfconstants import *
+from src.device_conf.device import Device
+from src.device_conf.device_sample import Device_sample
 from src.scan_mode.sample import Mode_sample
 
 np.random.seed(19680801)
@@ -38,9 +39,9 @@ def Start_AD2():
     while (ScanParam.scan != Status.EXIT):
         
         if (ScanParam.mode == Status.SAMPLE):
-            Device.Upadate_sample_oCH()
-            Device.Start_osciloscope()
-            Device.Update_freqency()
+            Device_sample.Upadate_sample_oCH()
+            Device_sample.Start_osciloscope()
+            Device_sample.Update_freqency()
             Mode_sample.Scan()
         else:
             print("continuous mode")
@@ -48,8 +49,7 @@ def Start_AD2():
         if(ScanParam.scan == Status.STOP):
             Mode_sample.Reset_Scan()
         
-        
-
+    
 # animation function.  This is called sequentially
 def Update_pictures(i):
     resolution = ScanParam.resolution

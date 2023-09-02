@@ -92,8 +92,8 @@ class ContinuousMode:
     buf_size = c_int(1000)
     phase_ch1 = c_double(0.0)
     phase_ch2 = c_double(0.0)
-    DataCH1: c_double = (c_double*sample)()
-    DataCH2: c_double = (c_double*sample)()
+    DataCH1: c_double = (c_double*buf_size)()
+    DataCH2: c_double = (c_double*buf_size)()
     f_ch1 = np.arange(sample, dtype=float)
     f_ch2 = np.arange(sample, dtype=float)
     
