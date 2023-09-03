@@ -89,7 +89,7 @@ class SampleMode: #ScanSample:
 class ContinuousMode:
     sample = 10000
     hzAcq = [c_double(450000), c_double(450000)]
-    buf_size = c_int(1000)
+    buf_size = 1000
     phase_ch1 = c_double(0.0)
     phase_ch2 = c_double(0.0)
     DataCH1: c_double = (c_double*buf_size)()

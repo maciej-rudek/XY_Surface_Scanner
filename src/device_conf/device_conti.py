@@ -16,13 +16,14 @@ class Device_conti:
         Dwf.dw.FDwfAnalogInAcquisitionModeSet(Dwf.hdwf, acqmodeScanShift) #acqmodeScanShift
         Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(1), c_int(0)) 
         Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, ContinuousMode.hzAcq[0])
-        Dwf.dw.FDwfAnalogInBufferSizeSet(Dwf.hdwf, ContinuousMode.buf_size)
+        Dwf.dw.FDwfAnalogInBufferSizeSet(Dwf.hdwf, c_int(ContinuousMode.buf_size))
     
     
     def Set_continuous_sin_output():
         oxy = c_double(ScanParam.oxy)
+        resolution = ScanParam.resolution
         hzAcq_A = ContinuousMode.hzAcq[0]
-        hzAcq_B = c_double(hzAcq_A / (ScanParam.resolution * 2)) # 2: L->R, R->L in "one" line
+        hzAcq_B = c_double(hzAcq_A.value / resolution * 2) # 2: L->R, R->L in "one" line
         
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(True))
         Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcSine) #sine
@@ -41,11 +42,11 @@ class Device_conti:
     
     
     def Get_conti_data():
-        Dwf.dw.DwfAnalogInStatus(Dwf.hdwf, c_int(1), byref(c_byte()))
-        Dwf.dw.DwfAnalogInStatusSamplesValid(Dwf.hdwf, byref(c_int(0)))
+        Dwf.dw.FDwfAnalogInStatus(Dwf.hdwf, c_int(1), byref(c_byte()))
+        Dwf.dw.FDwfAnalogInStatusSamplesValid(Dwf.hdwf, byref(c_int(0)))
         
-        Dwf.dw.DwfAnalogInStatusData(Dwf.hdwf, iCH_1, byref(ContinuousMode.DataCH1), c_int(0)) # get channel 1 data
-        Dwf.dw.DwfAnalogInStatusData(Dwf.hdwf, iCH_2, byref(ContinuousMode.DataCH2), c_int(0)) # get channel 2 data
+        Dwf.dw.FDwfAnalogInStatusData(Dwf.hdwf, iCH_1, byref(ContinuousMode.DataCH1), c_int(0)) # get channel 1 data
+        Dwf.dw.FDwfAnalogInStatusData(Dwf.hdwf, iCH_2, byref(ContinuousMode.DataCH2), c_int(0)) # get channel 2 data
 
 
 

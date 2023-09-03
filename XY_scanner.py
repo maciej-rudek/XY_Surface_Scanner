@@ -15,6 +15,8 @@ from src.files_operation import FileOperations
 from src.device_conf.dwfconstants import *
 from src.device_conf.device import Device
 from src.device_conf.device_sample import Device_sample
+from src.device_conf.device_conti import Device_conti
+from src.scan_mode.continuous import Mode_continuous
 from src.scan_mode.sample import Mode_sample
 
 np.random.seed(19680801)
@@ -35,7 +37,7 @@ line1, = ax4.plot(x, y, 'b-')
 
 
 def Start_AD2():
-
+    stan = 0
     while (ScanParam.scan != Status.EXIT):
         
         if (ScanParam.mode == Status.SAMPLE):
@@ -43,10 +45,18 @@ def Start_AD2():
             Device_sample.Start_osciloscope()
             Device_sample.Update_freqency()
             Mode_sample.Scan()
-        else:
-            print("continuous mode")
+            
+        if (ScanParam.mode == Status.CONTINUOUS):
+            if (stan == 0):
+                Device_conti.Set_continuous_sin_output()
+                Device_conti.Set_shift_aqusition()
+                stan = 1
+            
+            if (stan == 1):
+                Mode_continuous.Colect_Data()
         
         if(ScanParam.scan == Status.STOP):
+            stan = 0
             Mode_sample.Reset_Scan()
         
     
@@ -69,7 +79,7 @@ def Update_pictures(i):
     ax6.imshow(PictureData.CH4,  cmap='afmhot', interpolation='none')
     
     x = np.linspace(0, SampleMode.sample, SampleMode.sample)
-    ox = np.linspace(1,resolution,resolution)
+    ox = np.linspace(1, resolution, resolution)
    
     if(i % 2 == 1):
         ax3.clear()
