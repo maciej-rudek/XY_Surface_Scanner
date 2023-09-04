@@ -69,7 +69,7 @@ class PictureSCS:
 @dataclass
 class ScanParam:
     scan = Status.STOP
-    mode = Status.SAMPLE
+    mode = Status.CONTINUOUS
     resolution = 20
     area = 100
     oxy = MAX_VOLTAGE * area / MAX_AREA
@@ -88,14 +88,14 @@ class SampleMode: #ScanSample:
 @dataclass
 class ContinuousMode:
     sample = 10000
-    hzAcq = [c_double(450000), c_double(450000)]
+    hzAcq = [c_double(1), c_double(1)]
     buf_size = 1000
     phase_ch1 = c_double(0.0)
     phase_ch2 = c_double(0.0)
     DataCH1: c_double = (c_double*buf_size)()
     DataCH2: c_double = (c_double*buf_size)()
-    f_ch1 = np.arange(sample, dtype=float)
-    f_ch2 = np.arange(sample, dtype=float)
+    f_ch1 = np.arange(buf_size, dtype=float)
+    f_ch2 = np.arange(buf_size, dtype=float)
     
 @dataclass
 class PictureData:

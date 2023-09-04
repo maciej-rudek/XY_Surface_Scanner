@@ -9,10 +9,19 @@ from src.device_conf.device_conti import Device_conti
 
 class Mode_continuous:
     
-    def Colect_Data():
-        Wait_time= ( 1/ContinuousMode.hzAcq[0].value ) * 2
+    def Scan():
+        Wait_time= ( 1 / ContinuousMode.hzAcq[0].value ) * 2
+        # print(str(Wait_time))
+        
         Device_conti.Get_conti_data()
         
+        for i in range(ContinuousMode.buf_size):
+            ContinuousMode.f_ch1[i] = float(ContinuousMode.DataCH1[i])
+            ContinuousMode.f_ch2[i] = float(ContinuousMode.DataCH2[i])
         # procedure the collected data
         
+        print(str(ContinuousMode.f_ch2))
+        
         time.sleep(Wait_time)
+    
+    

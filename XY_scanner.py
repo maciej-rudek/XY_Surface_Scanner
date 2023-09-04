@@ -1,3 +1,4 @@
+from turtle import color
 import matplotlib
 import threading
 import time
@@ -8,6 +9,7 @@ import os
 from ctypes import *
 from matplotlib import pyplot as plt
 from matplotlib import animation
+from src.scan_data import ContinuousMode
 
 from src.scan_data import ImCont, PictureData, SampleMode, ScanParam, Status
 from src.menu.menu_controll import MenuControll 
@@ -43,25 +45,26 @@ def Start_AD2():
         if (ScanParam.mode == Status.SAMPLE):
             Device_sample.Upadate_sample_oCH()
             Device_sample.Start_osciloscope()
-            Device_sample.Update_freqency()
             Mode_sample.Scan()
+            Device_sample.Update_freqency()
+            stan = 0
             
         if (ScanParam.mode == Status.CONTINUOUS):
             if (stan == 0):
                 Device_conti.Set_continuous_sin_output()
                 Device_conti.Set_shift_aqusition()
+                print("stan_1")
                 stan = 1
             
             if (stan == 1):
-                Mode_continuous.Colect_Data()
+                Mode_continuous.Scan()
         
         if(ScanParam.scan == Status.STOP):
-            stan = 0
             Mode_sample.Reset_Scan()
         
     
 # animation function.  This is called sequentially
-def Update_pictures(i):
+def Update_pictures(frames):
     resolution = ScanParam.resolution
 
     ax1.cla()
@@ -78,16 +81,21 @@ def Update_pictures(i):
     ax5.imshow(PictureData.CH3,  cmap='Oranges_r', interpolation='none') 
     ax6.imshow(PictureData.CH4,  cmap='afmhot', interpolation='none')
     
-    x = np.linspace(0, SampleMode.sample, SampleMode.sample)
+    # x = np.linspace(0, SampleMode.sample, SampleMode.sample)
     ox = np.linspace(1, resolution, resolution)
    
-    if(i % 2 == 1):
+    if(frames % 2 == 1):
         ax3.clear()
         ax3.set_ylabel("CH 1 - TOPO", color="C1")
         ax3.tick_params(axis='x', colors="C1")
         ax3.tick_params(axis='y', colors="C1")
         if(ScanParam.scan == Status.STOP):
-            ax3.plot(x, SampleMode.DataCH1, color="C1")
+            if(ScanParam.mode == Status.SAMPLE):
+                x = np.linspace(0, SampleMode.sample, SampleMode.sample)
+                ax3.plot(x, SampleMode.DataCH1, color="C1")
+            else:
+                x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
+                ax3.plot(x, ContinuousMode.f_ch1, color="C1")
         else:
             if(ImCont.dir == 0):
                 if(ImCont.oY == 0):
@@ -109,19 +117,23 @@ def Update_pictures(i):
         ax4.tick_params(axis='y', colors="C0")
         if(ScanParam.scan == Status.STOP):
             # ax4.plot(x, SampleMode.DataCH2, color="C0")
-            line1.set_ydata(SampleMode.DataCH2)
+            if(ScanParam.mode == Status.SAMPLE):
+                line1.set_ydata(SampleMode.DataCH2)
+            else:
+                line1.set_ydata(ContinuousMode.f_ch2)
             # fig.canvas.draw()
         else:
-            if(ImCont.dir == 0):
-                if(ImCont.oY == 0):
-                    ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], color="C0")
+            if (ScanParam.mode == Status.SAMPLE):
+                if(ImCont.dir == 0):
+                    if(ImCont.oY == 0):
+                        ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], color="C0")
+                    else:
+                        ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH2[(ImCont.oY-1),1:resolution], color="C0")
                 else:
-                    ax4.plot(ox[1:resolution], PictureData.CH2[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH2[(ImCont.oY-1),1:resolution], color="C0")
-            else:
-                if(ImCont.oY == 0):
-                    ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], color="C0")
-                else:
-                    ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH4[(ImCont.oY-1),1:resolution], color="C0")
+                    if(ImCont.oY == 0):
+                        ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], color="C0")
+                    else:
+                        ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH4[(ImCont.oY-1),1:resolution], color="C0")
    
 
 def commands_and_menu():
