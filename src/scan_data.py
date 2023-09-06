@@ -48,6 +48,7 @@ class Dwf:
     dw = NULL
     hdwf = c_int()
     sts = c_byte()
+    rghdwf = []
 
 @dataclass
 class ImCont:
@@ -69,7 +70,7 @@ class PictureSCS:
 @dataclass
 class ScanParam:
     scan = Status.STOP
-    mode = Status.CONTINUOUS
+    mode = Status.SAMPLE
     resolution = 20
     area = 100
     oxy = MAX_VOLTAGE * area / MAX_AREA
@@ -94,8 +95,8 @@ class ContinuousMode:
     phase_ch2 = c_double(0.0)
     DataCH1: c_double = (c_double*buf_size)()
     DataCH2: c_double = (c_double*buf_size)()
-    f_ch1 = np.arange(buf_size, dtype=float)
-    f_ch2 = np.arange(buf_size, dtype=float)
+    f_ch1 = np.zeros(buf_size)
+    f_ch2 = np.zeros(buf_size)
     
 @dataclass
 class PictureData:

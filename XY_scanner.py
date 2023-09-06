@@ -39,7 +39,7 @@ line1, = ax4.plot(x, y, 'b-')
 
 
 def Start_AD2():
-    stan = 0
+    
     while (ScanParam.scan != Status.EXIT):
         
         if (ScanParam.mode == Status.SAMPLE):
@@ -47,17 +47,10 @@ def Start_AD2():
             Device_sample.Start_osciloscope()
             Mode_sample.Scan()
             Device_sample.Update_freqency()
-            stan = 0
             
         if (ScanParam.mode == Status.CONTINUOUS):
-            if (stan == 0):
-                Device_conti.Set_continuous_sin_output()
-                Device_conti.Set_shift_aqusition()
-                print("stan_1")
-                stan = 1
-            
-            if (stan == 1):
-                Mode_continuous.Scan()
+            print("scan scan scan")
+            Mode_continuous.Scan()
         
         if(ScanParam.scan == Status.STOP):
             Mode_sample.Reset_Scan()
@@ -167,10 +160,12 @@ def end_threads():
 
 if __name__ == "__main__":
 
-    os.system('cls' if os.name == 'nt' else 'clear')
+    # os.system('cls' if os.name == 'nt' else 'clear')
 
     Device.Check_device()
     Device.Open_device()
+    Device.Configure_setup_mode()
+        
     MenuControll.menu_header()
 
     t1 = threading.Thread(target=commands_and_menu, args=())
@@ -188,4 +183,5 @@ if __name__ == "__main__":
     # on_close()
     end_threads()
     MenuControll.menu_end()
+    Device.Close_ALL()
     quit()

@@ -11,7 +11,6 @@ class Mode_continuous:
     
     def Scan():
         Wait_time= ( 1 / ContinuousMode.hzAcq[0].value ) * 2
-        # print(str(Wait_time))
         
         Device_conti.Get_conti_data()
         
@@ -20,7 +19,7 @@ class Mode_continuous:
             ContinuousMode.f_ch2[i] = float(ContinuousMode.DataCH2[i])
         # procedure the collected data
         
-        print(str(ContinuousMode.f_ch2))
+        print(str(ContinuousMode.f_ch2[10:20]))
         
         time.sleep(Wait_time)
     

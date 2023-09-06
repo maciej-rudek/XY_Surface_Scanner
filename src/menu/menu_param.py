@@ -6,6 +6,7 @@ from enum import Enum
 from ctypes import *
 from src.scan_data import ImCont, SampleMode, ContinuousMode, Status, ScanParam, DwfData, PictureData, PictureSCS
 from src.files_operation import FileOperations
+from src.device_conf.device import Device
 
 
 class MenuParams:
@@ -129,4 +130,5 @@ class MenuParams:
         """Scan Modes [sample, continuous]"""
         ScanParam.mode = Status(data_params)
         DwfData.clear_menu = True
+        Device.Configure_setup_mode()
 
