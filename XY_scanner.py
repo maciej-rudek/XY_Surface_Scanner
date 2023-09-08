@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 from turtle import color
 import matplotlib
 import threading
@@ -39,9 +40,13 @@ line1, = ax4.plot(x, y, 'b-')
 
 
 def Start_AD2():
-    
     while (ScanParam.scan != Status.EXIT):
         
+        if(ScanParam.mode != ScanParam.mode_old):
+            ScanParam.mode = ScanParam.mode_old
+            Mode_sample.Reset_Scan()
+            Device.Configure_setup_mode()
+            
         if (ScanParam.mode == Status.SAMPLE):
             Device_sample.Upadate_sample_oCH()
             Device_sample.Start_osciloscope()
@@ -49,7 +54,6 @@ def Start_AD2():
             Device_sample.Update_freqency()
             
         if (ScanParam.mode == Status.CONTINUOUS):
-            print("scan scan scan")
             Mode_continuous.Scan()
         
         if(ScanParam.scan == Status.STOP):
@@ -147,7 +151,7 @@ def on_close(event):
 
 
 def end_threads():
-    ScanParam.scan = Status.EXIT
+    # ScanParam.scan = Status.EXIT
     print("Locking all dragons in dungeons o-]===> ")
     time.sleep(2)
     if(t1.is_alive()):
@@ -160,7 +164,7 @@ def end_threads():
 
 if __name__ == "__main__":
 
-    # os.system('cls' if os.name == 'nt' else 'clear')
+    os.system('cls' if os.name == 'nt' else 'clear')
 
     Device.Check_device()
     Device.Open_device()
@@ -179,6 +183,9 @@ if __name__ == "__main__":
     
     plt.show()
     
+    while(ScanParam.scan != Status.EXIT):
+        NULL
+        
     # plt.close()
     # on_close()
     end_threads()

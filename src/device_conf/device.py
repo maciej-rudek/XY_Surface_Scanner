@@ -9,7 +9,16 @@ from src.scan_data import Dwf, ImCont, SampleMode, ContinuousMode, DwfData, Scan
 
 class Device:
     
+    def Reset_device():
+        Dwf.dw.FDwfAnalogInReset(Dwf.hdwf)
+        Dwf.dw.FDwfAnalogOutReset(Dwf.hdwf)
+    
+    
     def Configure_setup_mode():
+        # Device.Close_ALL()
+        # Device.Open_device()
+        Device.Reset_device()
+        
         if (ScanParam.mode == Status.SAMPLE):
             Device_sample.Set_sample_aqusition()
             Device_sample.Set_signal_output()
@@ -18,7 +27,6 @@ class Device:
             # Dwf.rghdwf.append(Dwf.hdwf.value)
             Device_conti.Set_continuous_sin_output()
             Device_conti.Set_shift_aqusition()
-            # Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
     
     
     def Open_device():
