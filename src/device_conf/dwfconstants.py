@@ -214,6 +214,6 @@ oCH_A = c_int(0)
 oCH_B = c_int(1)
 
 #Input channels - ADC's
-iCH_1 = c_int(0)
-iCH_2 = c_int(1)
+iCH_0 = c_int(0)
+iCH_1 = c_int(1)
 

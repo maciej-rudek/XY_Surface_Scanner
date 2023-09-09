@@ -89,10 +89,10 @@ def Update_pictures(frames):
         if(ScanParam.scan == Status.STOP):
             if(ScanParam.mode == Status.SAMPLE):
                 x = np.linspace(0, SampleMode.sample, SampleMode.sample)
-                ax3.plot(x, SampleMode.DataCH1, color="C1")
+                ax3.plot(x[1:SampleMode.sample], SampleMode.DataCH1[1:SampleMode.sample], color="C1")
             else:
                 x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
-                ax3.plot(x, ContinuousMode.f_ch1, color="C1")
+                ax3.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch1[1:ContinuousMode.buf_size], color="C1")
         else:
             if(ImCont.dir == 0):
                 if(ImCont.oY == 0):
@@ -115,9 +115,13 @@ def Update_pictures(frames):
         if(ScanParam.scan == Status.STOP):
             # ax4.plot(x, SampleMode.DataCH2, color="C0")
             if(ScanParam.mode == Status.SAMPLE):
-                line1.set_ydata(SampleMode.DataCH2)
+                # line1.set_ydata(SampleMode.DataCH2)
+                x = np.linspace(0, SampleMode.sample, SampleMode.sample)
+                ax4.plot(x[1:SampleMode.sample], SampleMode.DataCH2[1:SampleMode.sample], color="C0")
             else:
-                line1.set_ydata(ContinuousMode.f_ch2)
+                # line1.set_ydata(ContinuousMode.f_ch2)
+                x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
+                ax4.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch2[1:ContinuousMode.buf_size], color="C0")
             # fig.canvas.draw()
         else:
             if (ScanParam.mode == Status.SAMPLE):

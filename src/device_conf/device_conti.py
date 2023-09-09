@@ -10,16 +10,15 @@ class Device_conti:
     def Set_shift_aqusition(): 
         Dwf.dw.FDwfAnalogInChannelEnableSet(Dwf.hdwf, c_int(-1), c_int(1))
         Dwf.dw.FDwfAnalogInChannelOffsetSet(Dwf.hdwf, c_int(-1), c_double(0)) 
-        Dwf.dw.FDwfAnalogInChannelRangeSet(Dwf.hdwf, c_int(0), c_double(5))
-        # Dwf.dw.FDwfAnalogInTriggerPositionSet(Dwf.hdwf, c_double(nSamples*4/10/1e6)) # 0 is middle, 4/10 = 10%
-        # Dwf.dw.FDwfAnalogInTriggerSourceSet(Dwf.hdwf, c_byte(11)) # 11 = trigsrcExternal1, T1
-        Dwf.dw.FDwfAnalogInAcquisitionModeSet(Dwf.hdwf, acqmodeScanShift) #acqmodeScanShift
+        Dwf.dw.FDwfAnalogInChannelRangeSet(Dwf.hdwf, iCH_0, c_double(10))
+        Dwf.dw.FDwfAnalogInChannelRangeSet(Dwf.hdwf, iCH_1, c_double(10))
+        Dwf.dw.FDwfAnalogInAcquisitionModeSet(Dwf.hdwf, acqmodeScanShift)
         Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(1), c_int(0)) 
         Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, c_double(200))
         Dwf.dw.FDwfAnalogInBufferSizeSet(Dwf.hdwf,  c_int(ContinuousMode.buf_size))
         # print(dwf.FDwfAnalogOutStatus(Dwf.hdwf, c_int(0), byref(sts)))
         Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
-    
+
     
     def Set_continuous_sin_output():
         oxy = c_double(ScanParam.oxy)
@@ -51,8 +50,8 @@ class Device_conti:
         Dwf.dw.FDwfAnalogInStatus(Dwf.hdwf, c_int(1), byref(sts))
         Dwf.dw.FDwfAnalogInStatusSamplesValid(Dwf.hdwf, byref(cValid))
         
-        Dwf.dw.FDwfAnalogInStatusData(Dwf.hdwf, c_int(0), byref(ContinuousMode.DataCH1), cValid) # get channel 1 data
-        Dwf.dw.FDwfAnalogInStatusData(Dwf.hdwf, c_int(1), byref(ContinuousMode.DataCH2), cValid) # get channel 2 data
+        Dwf.dw.FDwfAnalogInStatusData(Dwf.hdwf, iCH_0, byref(ContinuousMode.DataCH1), cValid) # get channel 1 data
+        Dwf.dw.FDwfAnalogInStatusData(Dwf.hdwf, iCH_1, byref(ContinuousMode.DataCH2), cValid) # get channel 2 data
 
 
 
