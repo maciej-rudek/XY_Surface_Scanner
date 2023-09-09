@@ -113,16 +113,12 @@ def Update_pictures(frames):
         ax4.tick_params(axis='x', colors="C0")
         ax4.tick_params(axis='y', colors="C0")
         if(ScanParam.scan == Status.STOP):
-            # ax4.plot(x, SampleMode.DataCH2, color="C0")
             if(ScanParam.mode == Status.SAMPLE):
-                # line1.set_ydata(SampleMode.DataCH2)
                 x = np.linspace(0, SampleMode.sample, SampleMode.sample)
                 ax4.plot(x[1:SampleMode.sample], SampleMode.DataCH2[1:SampleMode.sample], color="C0")
             else:
-                # line1.set_ydata(ContinuousMode.f_ch2)
                 x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
                 ax4.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch2[1:ContinuousMode.buf_size], color="C0")
-            # fig.canvas.draw()
         else:
             if (ScanParam.mode == Status.SAMPLE):
                 if(ImCont.dir == 0):
