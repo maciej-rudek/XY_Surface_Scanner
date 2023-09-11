@@ -21,6 +21,7 @@ from src.device_conf.device_sample import Device_sample
 from src.device_conf.device_conti import Device_conti
 from src.scan_mode.continuous import Mode_continuous
 from src.scan_mode.sample import Mode_sample
+from src.scan_mode.special import Once
 
 np.random.seed(19680801)
 
@@ -42,11 +43,11 @@ line1, = ax4.plot(x, y, 'b-')
 def Start_AD2():
     while (ScanParam.scan != Status.EXIT):
         
-        if(ScanParam.mode != ScanParam.mode_old):
-            ScanParam.mode = ScanParam.mode_old
+        if(ScanParam.mode != ScanParam.mode_new):
+            ScanParam.mode = ScanParam.mode_new
             Mode_sample.Reset_Scan()
             Device.Configure_setup_mode()
-            
+        
         if (ScanParam.mode == Status.SAMPLE):
             Device_sample.Upadate_sample_oCH()
             Device_sample.Start_osciloscope()
@@ -54,9 +55,12 @@ def Start_AD2():
             Device_sample.Update_freqency()
             
         if (ScanParam.mode == Status.CONTINUOUS):
+            if (ScanParam.scan == Status.START):
+                Device_conti.First_configuration()
             Mode_continuous.Scan()
         
         if(ScanParam.scan == Status.STOP):
+            Once.Reset_once
             Mode_sample.Reset_Scan()
         
     
