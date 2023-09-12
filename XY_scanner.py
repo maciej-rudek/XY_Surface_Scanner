@@ -60,7 +60,8 @@ def Start_AD2():
             Mode_continuous.Scan()
         
         if(ScanParam.scan == Status.STOP):
-            Once.Reset_once
+            Device_conti.Switch_off_output()
+            Once.Reset_once()
             Mode_sample.Reset_Scan()
         
     
@@ -97,17 +98,21 @@ def Update_pictures(frames):
             else:
                 x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
                 ax3.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch1[1:ContinuousMode.buf_size], color="C1")
-        else:
-            if(ImCont.dir == 0):
-                if(ImCont.oY == 0):
-                    ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], color="C1")
+        else: #SCAN 
+            if(ScanParam.mode == Status.SAMPLE):
+                if(ImCont.dir == 0):
+                    if(ImCont.oY == 0):
+                        ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], color="C1")
+                    else:
+                        ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH1[(ImCont.oY-1),1:resolution], color="C1")
                 else:
-                    ax3.plot(ox[1:resolution], PictureData.CH1[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH1[(ImCont.oY-1),1:resolution], color="C1")
+                    if(ImCont.oY == 0):
+                        ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], color="C1")
+                    else:
+                        ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH3[(ImCont.oY-1),1:resolution], color="C1")
             else:
-                if(ImCont.oY == 0):
-                    ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], color="C1")
-                else:
-                    ax3.plot(ox[1:resolution], PictureData.CH3[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH3[(ImCont.oY-1),1:resolution], color="C1")
+                x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
+                ax3.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch1[1:ContinuousMode.buf_size], color="C1")
     else:
         ax4.clear()
         ax4.yaxis.tick_right()
@@ -123,7 +128,7 @@ def Update_pictures(frames):
             else:
                 x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
                 ax4.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch2[1:ContinuousMode.buf_size], color="C0")
-        else:
+        else: # SCAN
             if (ScanParam.mode == Status.SAMPLE):
                 if(ImCont.dir == 0):
                     if(ImCont.oY == 0):
@@ -135,6 +140,10 @@ def Update_pictures(frames):
                         ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], color="C0")
                     else:
                         ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH4[(ImCont.oY-1),1:resolution], color="C0")
+            else:
+                x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
+                ax4.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch2[1:ContinuousMode.buf_size], color="C0")
+
    
 
 def commands_and_menu():

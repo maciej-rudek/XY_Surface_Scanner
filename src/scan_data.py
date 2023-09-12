@@ -72,7 +72,7 @@ class ScanParam:
     scan = Status.STOP
     scan_update = False
     mode = Status.CONTINUOUS
-    mode_new = mode
+    mode_new = Status.CONTINUOUS
     resolution = 20
     area = 100
     oxy = MAX_VOLTAGE * area / MAX_AREA

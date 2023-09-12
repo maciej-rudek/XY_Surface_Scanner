@@ -25,21 +25,9 @@ class Device:
             Device_sample.Set_signal_output()
             
         if (ScanParam.mode == Status.CONTINUOUS):
-            Device_conti.Set_continuous_sin_output() # Only for test 
+            # Device_conti.Set_continuous_sin_output() # Only for test 
+            Device_conti.Set_start_offset_output()
             Device_conti.Set_shift_aqusition()
-    
-    def Configure_setup_scan():
-        
-        if (ScanParam.mode == Status.CONTINUOUS):
-            if (ScanParam.scan == Status.START):
-                # ON SIN and RAMP in DAC
-                Device_conti.Set_continuous_sin_output()
-                Device_conti.Set_shift_aqusition()
-                            
-            if (ScanParam.scan == Status.STOP):
-                # OFF SIN and RAMP in DAC
-                Device_sample.Set_signal_output()
-                # Device_conti.Switch_off_output()
     
     
     def Open_device():

@@ -25,6 +25,11 @@ class Device_conti:
         Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
 
     
+    def Set_start_offset_output():
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(0))
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_B, AnalogOutNodeCarrier, c_double(0))
+    
+    
     def Set_continuous_sin_output():
         oxy = c_double(ScanParam.oxy)
         resolution = ScanParam.resolution

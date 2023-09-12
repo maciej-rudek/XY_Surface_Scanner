@@ -128,6 +128,6 @@ class MenuParams:
     @staticmethod
     def param_mode(data_params):
         """Scan Modes [sample, continuous]"""
-        ScanParam.mode_old = Status(data_params)
+        ScanParam.mode_new = Status(data_params)
         DwfData.clear_menu = True
 
