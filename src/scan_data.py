@@ -93,8 +93,8 @@ class ContinuousMode:
     sample = 10000
     hzAcq = [c_double(1), c_double(1)]
     buf_size = 1000
-    phase_ch1 = c_double(0.0)
-    phase_ch2 = c_double(0.0)
+    phase_ch1 = c_double(90.0)
+    phase_ch2 = c_double(90.0)
     DataCH1: c_double = (c_double*buf_size)()
     DataCH2: c_double = (c_double*buf_size)()
     f_ch1 = np.arange(buf_size, dtype=float)

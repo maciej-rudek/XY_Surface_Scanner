@@ -34,7 +34,7 @@ class Device_conti:
         oxy = c_double(ScanParam.oxy)
         resolution = ScanParam.resolution
         hzAcq_A = ContinuousMode.hzAcq[0]
-        hzAcq_B = c_double(hzAcq_A.value / resolution * 2) # 2: L->R, R->L in "one" line
+        hzAcq_B = c_double(hzAcq_A.value / ( resolution * 2 ) ) # 2: L->R, R->L in "one" line
         
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(True))
         Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcSine)
