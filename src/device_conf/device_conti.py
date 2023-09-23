@@ -28,6 +28,28 @@ class Device_conti:
     def Set_start_offset_output():
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(0))
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_B, AnalogOutNodeCarrier, c_double(0))
+        
+    
+    def Primitive_positioning():
+        # To change
+        Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(True))
+        Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcDC)
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(0))
+        time.sleep(0.05)
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(1))
+        time.sleep(0.05)
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(2))
+        time.sleep(0.05)
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(3))
+        time.sleep(0.05)
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(4))
+        time.sleep(0.05)
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(5))
+        time.sleep(0.05)
+        Dwf.dw.FDwfAnalogOutIdleSet(Dwf.hdwf, oCH_A, DwfAnalogOutIdleOffset) 
+        Dwf.dw.FDwfAnalogOutIdleSet(Dwf.hdwf, oCH_B, DwfAnalogOutIdleOffset) 
+        
+        Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(True))
     
     
     def Set_continuous_sin_output():
@@ -35,6 +57,8 @@ class Device_conti:
         resolution = ScanParam.resolution
         hzAcq_A = ContinuousMode.hzAcq[0]
         hzAcq_B = c_double(hzAcq_A.value / ( resolution * 2 ) ) # 2: L->R, R->L in "one" line
+        Dwf.dw.FDwfDeviceAutoConfigureSet(Dwf.hdwf, c_int(3)) # dynamic mode to change parameters
+        Device_conti.Primitive_positioning()
         
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(True))
         Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcSine)
@@ -51,6 +75,8 @@ class Device_conti:
         Dwf.dw.FDwfAnalogOutConfigure(Dwf.hdwf, oCH_A, c_bool(True))
         Dwf.dw.FDwfAnalogOutConfigure(Dwf.hdwf, oCH_B, c_bool(True))
         
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(0)) # check if it is necsesery
+                
         time.sleep(2)
         
     

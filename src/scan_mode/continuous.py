@@ -34,3 +34,41 @@ class Mode_continuous:
             Mode_continuous.time_to_watch = 0
             time.sleep(WAIT_START)
     
+    # def join_and_cut():
+    #     window = 190
+    #     L_space = 10
+    #     all_ch2 = np.zeros((nSamples * p_iter))
+    #     offset = 0
+
+    #     for i in range(p_iter):
+    #         # print(i)
+    #         if ( i == 0 ):
+    #             all_ch2[0:1000] = tab_ch1[i, 0 : 1000]
+    #         else:
+    #             krok = 0
+    #             while (krok <= nSamples):
+    #                 all_sta = (i - 1) * window + L_space + offset
+    #                 all_end = all_sta + window
+    #                 tab_sta = krok
+    #                 tab_end = krok + window
+    #                 end_to_nS = nSamples - tab_end
+                    
+    #                 if(tab_end == (nSamples)):
+    #                     krok = 0 
+    #                     offset = offset + window
+                            
+    #                 if ( all_ch2[all_sta:all_end]  ==  tab_ch1[i, tab_sta : tab_end]).all():
+    #                     all_ch2[all_sta:all_end + end_to_nS] = tab_ch1[i, tab_sta : tab_end + end_to_nS]
+                        
+    #                     if ( i > 2 ):
+    #                         offset = offset + window
+                        
+    #                     if( i > 110):
+    #                         print("i: ", i, " | k: ", krok, ", all sta: ", all_sta, ", all end: ", all_end, ", tab_s: ", tab_sta, ", tab_e: ", tab_end, ", off: ", offset)
+    #                     break
+                    
+    #                 if(krok == nSamples):
+    #                     krok = 0
+    #                 else:
+    #                     krok = krok + 1
+    
