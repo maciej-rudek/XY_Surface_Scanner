@@ -5,6 +5,7 @@ import time
 from src.device_conf.dwfconstants import *
 from src.device_conf.device_sample import Device_sample
 from src.device_conf.device_conti import Device_conti
+from src.device_conf.device_semi import Device_semi
 from src.scan_data import Dwf, ImCont, SampleMode, ContinuousMode, DwfData, ScanParam, Status
 
 
@@ -28,6 +29,11 @@ class Device:
             # Device_conti.Set_continuous_sin_output() # Only for test 
             Device_conti.Set_start_offset_output()
             Device_conti.Set_shift_aqusition()
+        
+        if (ScanParam.mode == Status.SEMI):
+            # Device_conti.Set_continuous_sin_output() # Only for test 
+            Device_semi.Set_start_offset_output()
+            Device_semi.Set_shift_aqusition()
     
     
     def Open_device():
