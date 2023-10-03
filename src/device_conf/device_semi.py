@@ -10,7 +10,6 @@ class Device_semi:
     @Once.Run_once
     def First_configuration():
         Device_semi.Set_shift_aqusition()
-        Device_semi.Set_semi_sin_output()
 
 
     def Set_shift_aqusition(): 
@@ -39,7 +38,9 @@ class Device_semi:
         dxy = 2 * ScanParam.oxy / (ScanParam.resolution - 1)
         d2 = (ImCont.y * dxy) - (ScanParam.oxy) + ScanParam.offset_y
         
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_B, AnalogOutNodeCarrier, c_double(d2))    
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_B, AnalogOutNodeCarrier, c_double(d2))
+        ImCont.y = ImCont.y + 1  
+        # time.sleep(0.2)  
     
     
     def Primitive_positioning():
@@ -67,12 +68,13 @@ class Device_semi:
     def Set_semi_sin_output():
         oxy = c_double(ScanParam.oxy)
         hzAcq_A = SemiMode.hzAcq[0]
-        runtime = 0.5 / hzAcq_A.value
+        runtime = 1 / hzAcq_A.value
         Dwf.dw.FDwfDeviceAutoConfigureSet(Dwf.hdwf, c_int(3)) # dynamic mode to change parameters
         # Device_semi.Primitive_positioning()
         
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(True))
-        Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcSine)
+        # Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcSine)
+        Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcTriangle)
         Dwf.dw.FDwfAnalogOutNodeFrequencySet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, hzAcq_A)
         Dwf.dw.FDwfAnalogOutNodeAmplitudeSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, oxy)
         Dwf.dw.FDwfAnalogOutNodePhaseSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, SemiMode.phase_ch1)
@@ -83,7 +85,8 @@ class Device_semi:
         
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(0)) # check if it is necsesery
                 
-        time.sleep(2)
+        # time.sleep(2)
+        time.sleep(0.2)
         
     
     def Switch_off_output():

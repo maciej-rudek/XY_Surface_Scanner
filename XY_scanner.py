@@ -69,7 +69,7 @@ def Start_AD2():
             Device_conti.Switch_off_output()
             Once.Reset_once()
             Mode_sample.Reset_Scan()
-        
+            
     
 # animation function.  This is called sequentially
 def Update_pictures(frames):
@@ -163,7 +163,6 @@ def Update_pictures(frames):
                 x = np.linspace(0, SemiMode.buf_size, SemiMode.buf_size)
                 ax4.plot(x[1:SemiMode.buf_size], SemiMode.f_ch2[1:SemiMode.buf_size], color="C0")
 
-   
 
 def commands_and_menu():
     while(ScanParam.scan != Status.EXIT):
