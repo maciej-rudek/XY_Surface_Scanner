@@ -10,6 +10,7 @@ class Device_semi:
     @Once.Run_once
     def First_configuration():
         Device_semi.Set_shift_aqusition()
+        Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
 
 
     def Set_shift_aqusition(): 
@@ -40,7 +41,7 @@ class Device_semi:
         
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_B, AnalogOutNodeCarrier, c_double(d2))
         ImCont.y = ImCont.y + 1  
-        # time.sleep(0.2)  
+        # time.sleep(0.1)  
     
     
     def Primitive_positioning():
@@ -85,10 +86,13 @@ class Device_semi:
         
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(0)) # check if it is necsesery
                 
-        # time.sleep(2)
         time.sleep(0.2)
         
-    
+    def Start_on_once():
+        Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
+        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(0)) # check if it is necsesery
+        
+        
     def Switch_off_output():
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(False))
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_B, AnalogOutNodeCarrier, c_bool(False))

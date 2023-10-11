@@ -74,7 +74,7 @@ class ScanParam:
     scan_update = False
     mode = Status.SEMI
     mode_new = Status.SEMI
-    resolution = 20
+    resolution = 200
     area = 100
     oxy = MAX_VOLTAGE * area / MAX_AREA
     offset_x = 0
@@ -120,6 +120,9 @@ class PictureData:
     CH2: float = np.zeros((ScanParam.resolution, ScanParam.resolution))
     CH3: float = np.zeros((ScanParam.resolution, ScanParam.resolution))
     CH4: float = np.zeros((ScanParam.resolution, ScanParam.resolution))
+    CHA: float = np.zeros((ScanParam.resolution, SemiMode.buf_size))
+    CHB: float = np.zeros((ScanParam.resolution, SemiMode.buf_size))
+    CHC: float = np.zeros((ScanParam.resolution, SemiMode.buf_size))
     line: int = 0
     save = Status.NO
 

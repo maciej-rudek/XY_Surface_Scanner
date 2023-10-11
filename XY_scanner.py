@@ -72,11 +72,16 @@ def Update_pictures(frames):
     pic.ax6.cla()
     pic.ax6.set_title("CH 2 - ERROR P->L")
 
-    pic.ax1.imshow(PictureData.CH1,  cmap='Oranges_r', interpolation='none') 
+    pic.ax1.imshow(PictureData.CH1,  cmap='Oranges_r', interpolation='none')
     pic.ax2.imshow(PictureData.CH2,  cmap='afmhot', interpolation='none')
     pic.ax5.imshow(PictureData.CH3,  cmap='Oranges_r', interpolation='none') 
     pic.ax6.imshow(PictureData.CH4,  cmap='afmhot', interpolation='none')
     
+    pic.axA.imshow(PictureData.CHA,  cmap='afmhot', interpolation='none')
+    pic.axB.imshow(PictureData.CHB,  cmap='afmhot', interpolation='none')
+    
+    pic.axC.imshow(PictureData.CHC,  cmap='afmhot', interpolation='none')
+
     # x = np.linspace(0, SampleMode.sample, SampleMode.sample)
     ox = np.linspace(1, resolution, resolution)
    
@@ -184,6 +189,8 @@ def end_threads():
 if __name__ == "__main__":
 
     os.system('cls' if os.name == 'nt' else 'clear')
+    
+    # pic.ax_all_visable_off()
 
     Device.Check_device()
     Device.Open_device()

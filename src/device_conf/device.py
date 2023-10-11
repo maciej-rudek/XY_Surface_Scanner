@@ -7,7 +7,7 @@ from src.device_conf.device_sample import Device_sample
 from src.device_conf.device_conti import Device_conti
 from src.device_conf.device_semi import Device_semi
 from src.scan_data import Dwf, ImCont, SampleMode, ContinuousMode, DwfData, ScanParam, Status
-
+from src.fig_plots import pic
 
 class Device:
     
@@ -20,17 +20,22 @@ class Device:
         # Device.Close_ALL()
         # Device.Open_device()
         Device.Reset_device()
+        pic.ax_all_visable_off()
         
         if (ScanParam.mode == Status.SAMPLE):
+            pic.ax_1256_visable(True)
             Device_sample.Set_sample_aqusition()
             Device_sample.Set_signal_output()
             
         if (ScanParam.mode == Status.CONTINUOUS):
+            pic.ax_AB_visable(True)
             # Device_conti.Set_continuous_sin_output() # Only for test 
             Device_conti.Set_start_offset_output()
             Device_conti.Set_shift_aqusition()
         
         if (ScanParam.mode == Status.SEMI):
+            # pic.ax_C_visable(True)
+            pic.ax_AB_visable(True)
             # Device_conti.Set_continuous_sin_output() # Only for test 
             Device_semi.Set_start_offset_output()
             Device_semi.Set_shift_aqusition()
