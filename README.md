@@ -2,7 +2,7 @@
 
 The application is designed to perform surface imaging in the X and Y axes creating a 2D image. This type of application is used in:
 
-* **SPM** -Scanning Probe M,
+* **SPM** -Scanning Probe Microscope,
 * **AFM** - Atomic Force Microscope,
 * **STM** - Scanning Tunneling Microscope.
 
