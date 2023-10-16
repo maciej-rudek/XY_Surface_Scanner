@@ -5,7 +5,7 @@ import time
 from src.scan_data import ImCont, SemiMode, DwfData, ScanParam, Status, PictureData, SemiMode
 from src.device_conf.device import *
 from src.device_conf.device_semi import Device_semi
-from src.files_operation import FileOperations
+from src.files_operation.files import File_Operation
 
 
 class Mode_semi:
@@ -18,6 +18,8 @@ class Mode_semi:
         buff_size = SemiMode.buf_size
         
         if (ScanParam.scan == Status.START):
+            
+            Device_semi.First_configuration()
             
             cvalid = Device_semi.Get_conti_data()
             
@@ -35,7 +37,7 @@ class Mode_semi:
                 ScanParam.scan = Status.STOP
                 ImCont.x = 0
                 ImCont.y = 0
-                FileOperations.save_manager_files()
+                File_Operation.save_manager_files()
         else:
             Device_semi.Get_conti_data()
                 

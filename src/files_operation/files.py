@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 from src.scan_data import PictureData, DwfData, ScanParam, SampleMode, Logtime
 
-class FileOperations:
+class File_Operation:
     
     @staticmethod
     def check_time():
@@ -28,7 +28,7 @@ class FileOperations:
         else:
             os.mkdir(DwfData.directory)
             DwfData.logError = "New directory created: " + DwfData.directory
-            FileOperations.directory_manage()
+            File_Operation.directory_manage()
 
 
     @staticmethod
@@ -102,10 +102,10 @@ class FileOperations:
     def save_files(time_info):
         if(time_info != ""):
             end_info = "_" + time_info
-            FileOperations.save_raport()
+            File_Operation.save_raport()
         else:
             end_info = ""
-            FileOperations.save_raport()
+            File_Operation.save_raport()
             
         name_dir = DwfData.directory + '\\' + DwfData.files
         named_tuple = time.localtime()
@@ -126,6 +126,6 @@ class FileOperations:
     
     @staticmethod
     def save_manager_files(time_info = ""):
-        FileOperations.directory_manage()
-        FileOperations.check_files(time_info)
-        FileOperations.save_files(time_info)
+        File_Operation.directory_manage()
+        File_Operation.check_files(time_info)
+        File_Operation.save_files(time_info)
