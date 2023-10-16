@@ -5,7 +5,7 @@ import numpy as np
 from enum import Enum
 from ctypes import *
 from src.scan_data import ImCont, SampleMode, Status, ScanParam, PictureData, PictureSCS
-from src.files_operation import FileOperations
+from src.files_operation.operation import File_Operation
 
 
 class Mode_sample:
@@ -72,7 +72,7 @@ class Mode_sample:
                 ImCont.oY = ImCont.oY + 1
                 PictureData.line = PictureData.line + 1
                 if(ImCont.oY == resolution):
-                    FileOperations.save_manager_files()
+                    File_Operation.save_manager_files()
                     ImCont.oY = 0
                     # TODO: Wait for action from user - befor stop 
                     ScanParam.scan = Status.STOP

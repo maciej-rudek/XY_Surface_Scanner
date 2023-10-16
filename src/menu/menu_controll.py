@@ -6,7 +6,6 @@ from enum import Enum
 from ctypes import *
 from src.scan_data import ContinuousMode
 from src.scan_data import ImCont, SampleMode, Status, ScanParam, DwfData, Logtime, PictureData, PictureSCS
-from src.files_operation import FileOperations
 from src.menu.menu_param import MenuParams
 
 LINE_UP = '\033[1A'
@@ -72,7 +71,7 @@ class MenuControll:
     @staticmethod
     def menu_param_revrite(revrite):
         for i in range (revrite):
-                print(LINE_UP, end='\r')
+            print(LINE_UP, end='\r')
 
 
     @staticmethod

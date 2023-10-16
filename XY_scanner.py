@@ -13,7 +13,7 @@ from matplotlib import animation
 
 from src.scan_data import ImCont, PictureData, SampleMode, ContinuousMode, SemiMode, ScanParam, Status
 from src.menu.menu_controll import MenuControll 
-from src.files_operation import FileOperations
+from src.files_operation.operation import File_Operation
 from src.device_conf.dwfconstants import *
 from src.device_conf.device import Device
 from src.device_conf.device_sample import Device_sample
@@ -49,8 +49,6 @@ def Start_AD2():
             Mode_continuous.Scan()
         
         if (ScanParam.mode == Status.SEMI):         # In progress
-            if (ScanParam.scan == Status.START):
-                Device_semi.First_configuration()
             Mode_semi.Scan()
         
         if(ScanParam.scan == Status.STOP):
@@ -161,14 +159,14 @@ def commands_and_menu():
     while(ScanParam.scan != Status.EXIT):
         MenuControll.run()
         if(PictureData.save == Status.YES):
-            FileOperations.save_manager_files()
+            File_Operation.save_manager_files()
             PictureData.save = Status.NO
         time.sleep(0.2)
     plt.close()
 
 
 def on_close(event):
-    FileOperations.save_manager_files()
+    File_Operation.save_manager_files()
     MenuControll.show_menu_parameters()
     end_threads()
     quit()
@@ -190,8 +188,6 @@ if __name__ == "__main__":
 
     os.system('cls' if os.name == 'nt' else 'clear')
     
-    # pic.ax_all_visable_off()
-
     Device.Check_device()
     Device.Open_device()
     Device.Configure_setup_mode()
