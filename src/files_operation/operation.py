@@ -7,9 +7,9 @@ from pathlib import Path
 from dataclasses import dataclass
 
 from src.scan_data import PictureData, DwfData, ScanParam, SampleMode, Logtime, Status
-from src.files_operation.semi_file import Semi_File
-from src.files_operation.sample_file import Sample_File
-from src.files_operation.continuous_file import Continuous_File
+from src.files_operation.semi import Semi_File
+from src.files_operation.sample import Sample_File
+from src.files_operation.continuous import Continuous_File
 
 class File_Operation:   
     
