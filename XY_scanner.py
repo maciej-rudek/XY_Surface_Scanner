@@ -188,8 +188,6 @@ if __name__ == "__main__":
 
     os.system('cls' if os.name == 'nt' else 'clear')
     
-    # pic.ax_all_visable_off()
-
     Device.Check_device()
     Device.Open_device()
     Device.Configure_setup_mode()

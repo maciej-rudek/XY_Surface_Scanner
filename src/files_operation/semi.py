@@ -76,14 +76,10 @@ class Semi_File:
         named_tuple = time.localtime()
         time_info = time.strftime("%H-%M-%S", named_tuple)
         
-        np.savetxt( name_dir + '_CH1_Topo' + end_info + '.dat', PictureData.CH1, fmt="%10.5f", delimiter=";")
-        np.savetxt( name_dir + '_CH1_Error' + end_info + '.dat', PictureData.CH2, fmt="%10.5f", delimiter=";")
-        np.savetxt( name_dir + '_CH2_Topo' + end_info + '.dat', PictureData.CH3, fmt="%10.5f", delimiter=";")
-        np.savetxt( name_dir + '_CH2_Error' + end_info + '.dat', PictureData.CH4, fmt="%10.5f", delimiter=";")
+        np.savetxt( name_dir + '_CH1_Topo' + end_info + '.dat', PictureData.CHA, fmt="%10.5f", delimiter=";")
+        np.savetxt( name_dir + '_CH1_Error' + end_info + '.dat', PictureData.CHB, fmt="%10.5f", delimiter=";")
         
-        matplotlib.image.imsave(name_dir + '_CH1_Topo' + end_info + '.png', PictureData.CH1)
-        matplotlib.image.imsave(name_dir + '_CH1_Error' + end_info + '.png', PictureData.CH2)
-        matplotlib.image.imsave(name_dir + '_CH2_Topo' + end_info + '.png', PictureData.CH3)
-        matplotlib.image.imsave(name_dir + '_CH2_Error' + end_info + '.png', PictureData.CH4)
+        matplotlib.image.imsave(name_dir + '_CH1_Topo' + end_info + '.png', PictureData.CHA)
+        matplotlib.image.imsave(name_dir + '_CH1_Error' + end_info + '.png', PictureData.CHB)
 
         DwfData.logError = 'Saved: ' + DwfData.files + ", at: " + time_info + '  \t\t'
