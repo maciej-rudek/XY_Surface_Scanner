@@ -13,7 +13,7 @@ from matplotlib import animation
 
 from src.scan_data import ImCont, PictureData, SampleMode, ContinuousMode, SemiMode, ScanParam, Status
 from src.menu.menu_controll import MenuControll 
-from src.files_operation.files import File_Operation
+from src.files_operation.operation import File_Operation
 from src.device_conf.dwfconstants import *
 from src.device_conf.device import Device
 from src.device_conf.device_sample import Device_sample

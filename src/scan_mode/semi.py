@@ -5,7 +5,7 @@ import time
 from src.scan_data import ImCont, SemiMode, DwfData, ScanParam, Status, PictureData, SemiMode
 from src.device_conf.device import *
 from src.device_conf.device_semi import Device_semi
-from src.files_operation.files import File_Operation
+from src.files_operation.operation import File_Operation
 
 
 class Mode_semi:
