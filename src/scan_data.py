@@ -18,6 +18,8 @@ class Status(Enum):
     SAMPLE = "sample"
     SEMI = "semi"
     CONTINUOUS = "continuous"
+    TRIANGLE = "triangle"
+    SINUS = "sinus"
 
 @dataclass
 class Logtime:
@@ -74,6 +76,8 @@ class ScanParam:
     scan_update = False
     mode = Status.SEMI
     mode_new = Status.SEMI
+    x_scan = Status.TRIANGLE
+    y_scan = Status.TRIANGLE 
     resolution = 200
     area = 100
     oxy = MAX_VOLTAGE * area / MAX_AREA
@@ -104,9 +108,8 @@ class ContinuousMode:
 
 @dataclass
 class SemiMode:
-    sample = 10000
     hzAcq = [c_double(1), c_double(1)]
-    buf_size = 250
+    buf_size = 450
     phase_ch1 = c_double(90.0)
     phase_ch2 = c_double(0.0)
     DataCH1: c_double = (c_double*buf_size)()

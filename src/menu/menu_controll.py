@@ -7,13 +7,14 @@ from enum import Enum
 from ctypes import *
 
 from src.scan_data import ContinuousMode
-from src.scan_data import ImCont, SampleMode, Status, ScanParam, DwfData, Logtime, PictureData, PictureSCS
+from src.scan_data import ImCont, SampleMode, Status, ScanParam, DwfData, SemiMode, Logtime, PictureData, PictureSCS
 from src.menu.menu_param import MenuParams
 
 LINE_UP = '\033[1A'
 LINE_CLEAR = '\x1b[2K'
-CONST_MENU_SAMPLE_MODE_REPEAT = 15
-CONST_MENU_CONTINUOUS_MODE_REPEAT = CONST_MENU_SAMPLE_MODE_REPEAT + 2
+SAMPLE_MODE_REPEAT = 15
+CONTINUOUS_MODE_REPEAT = 17
+SEMI_MODE_REPEAT = 18
 
 width, height = os.get_terminal_size()
 
@@ -50,7 +51,7 @@ class MenuControll:
     @staticmethod
     def show_menu_parameters():
         print ("")
-        print("Scan Mode: \t " + colored(ScanParam.mode.value.upper() +  "     ", 'blue') )
+        print("Scan Mode: \t " + colored(ScanParam.mode.value.upper() + "     ", 'blue') )
         print("Scan sample: \t", SampleMode.sample, "     ")
         print("Resolution: \t", ScanParam.resolution, "     ")
         print("Scan area: \t", (ScanParam.area), "     ")
@@ -59,13 +60,18 @@ class MenuControll:
         print("Offset Y: \t", (ScanParam.offset_y), "     ")
         if(ScanParam.mode == Status.SAMPLE):
             print("Scan freq: \t", SampleMode.hzAcq[0].value, "     ")
-        else:
+        if(ScanParam.mode == Status.CONTINUOUS):
             print("Scan freq: \t", ContinuousMode.hzAcq[0].value, "     ")
             print("Phase ch1: \t", ContinuousMode.phase_ch1, "     ")
             print("Phase ch2: \t", ContinuousMode.phase_ch2, "     ")
+        if(ScanParam.mode == Status.SEMI):
+            print("X pattern: \t " + colored(ScanParam.x_scan.value.upper() + "     ", 'blue') )
+            print("Scan freq: \t", SemiMode.hzAcq[0].value, "     ")
+            print("Phase ch1: \t", SemiMode.phase_ch1, "     ")
+            print("Phase ch2: \t", SemiMode.phase_ch2, "     ")
             
         print("="*width)
-        print("DWF Ver: \t ", DwfData.version, "     ")
+        print("DWF Ver: \t", DwfData.version, "     ")
         print("Log: \t\t" + colored( DwfData.status + "     ", 'green'))
         print("Error: \t\t" + colored( DwfData.logError + "     ", 'red'))
         print("-"*width)
@@ -101,22 +107,17 @@ class MenuControll:
             DwfData.clear_menu = False
             
             os.system('cls' if os.name == 'nt' else 'clear')
-
             
             MenuControll.menu_header()
             # MenuControll.show_menu_parameters()
-            
-            # if(ScanParam.mode != Status.SAMPLE):
-            #     MenuControll.menu_param_revrite(CONST_MENU_SAMPLE_MODE_REPEAT)
-            # else:
-            #     MenuControll.menu_param_revrite(CONST_MENU_CONTINUOUS_MODE_REPEAT)
                 
         else:
             if(ScanParam.mode == Status.SAMPLE):
-                MenuControll.menu_param_revrite(CONST_MENU_SAMPLE_MODE_REPEAT)
-            else:
-                MenuControll.menu_param_revrite(CONST_MENU_CONTINUOUS_MODE_REPEAT)
-            
+                MenuControll.menu_param_revrite(SAMPLE_MODE_REPEAT)
+            if(ScanParam.mode == Status.CONTINUOUS):
+                MenuControll.menu_param_revrite(CONTINUOUS_MODE_REPEAT)
+            if(ScanParam.mode == Status.SEMI):
+                MenuControll.menu_param_revrite(SEMI_MODE_REPEAT)
 
 # test purpuse only
 # def main():

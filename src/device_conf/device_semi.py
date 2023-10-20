@@ -13,14 +13,18 @@ class Device_semi:
         Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
 
 
-    def Set_shift_aqusition(): 
+    def Set_shift_aqusition():
+        hzAcq_A = SemiMode.hzAcq[0]
+        iterations = float(SemiMode.buf_size - 50)
+        frequency = iterations * hzAcq_A.value
+        
         Dwf.dw.FDwfAnalogInChannelEnableSet(Dwf.hdwf, c_int(-1), c_int(1))
         Dwf.dw.FDwfAnalogInChannelOffsetSet(Dwf.hdwf, c_int(-1), c_double(0)) 
         Dwf.dw.FDwfAnalogInChannelRangeSet(Dwf.hdwf, iCH_0, c_double(10))
         Dwf.dw.FDwfAnalogInChannelRangeSet(Dwf.hdwf, iCH_1, c_double(10))
         Dwf.dw.FDwfAnalogInAcquisitionModeSet(Dwf.hdwf, acqmodeScanShift)
         Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(1), c_int(0)) 
-        Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, c_double(200))
+        Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, c_double(frequency))
         Dwf.dw.FDwfAnalogInBufferSizeSet(Dwf.hdwf,  c_int(SemiMode.buf_size))
         Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
 
@@ -71,11 +75,14 @@ class Device_semi:
         hzAcq_A = SemiMode.hzAcq[0]
         runtime = 1 / hzAcq_A.value
         Dwf.dw.FDwfDeviceAutoConfigureSet(Dwf.hdwf, c_int(3)) # dynamic mode to change parameters
-        # Device_semi.Primitive_positioning()
-        
+        # Device_semi.Primitive_positioning()        
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(True))
-        # Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcSine)
-        Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcTriangle)
+        
+        if(ScanParam.x_scan == Status.SINUS):
+            Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcSine)
+        if(ScanParam.x_scan == Status.TRIANGLE):
+            Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcTriangle)
+            
         Dwf.dw.FDwfAnalogOutNodeFrequencySet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, hzAcq_A)
         Dwf.dw.FDwfAnalogOutNodeAmplitudeSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, oxy)
         Dwf.dw.FDwfAnalogOutNodePhaseSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, SemiMode.phase_ch1)
