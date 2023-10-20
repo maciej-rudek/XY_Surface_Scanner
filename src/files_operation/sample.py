@@ -26,6 +26,7 @@ class Sample_File:
         f.write("Scan mode: \t >> SAMPLE << " + "\n")
         
         General_File.save_scan_params(f)
+        f.write("Scan sample: \t" + str(SampleMode.sample) + "\n")
         f.write("Scan freq: \t" + str(SampleMode.hzAcq[0].value) + "\n")
         
         General_File.seave_time(f)        

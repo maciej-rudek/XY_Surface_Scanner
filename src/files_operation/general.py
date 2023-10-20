@@ -28,7 +28,6 @@ class General_File:
     
     def save_scan_params(f):
         f.write("=" * General_File.WIDTH + "\n")
-        f.write("Scan sample: \t" + str(SampleMode.sample) + "\n")
         f.write("Resolution: \t"  + str(ScanParam.resolution) + " px \n")
         f.write("Scan area: \t"  + str(ScanParam.area) + " % \n")
         f.write("Scan area: \t"  + str(ScanParam.oxy) + " V \n")
