@@ -27,10 +27,10 @@ class File_Operation:
         DwfData.directory = str(date_info[2:8] + "_" + DwfData.title)
         
         if os.path.isdir(DwfData.directory):
-            DwfData.logError = "Directory: " + DwfData.directory + " is existing."
+            DwfData.status = "Directory: " + DwfData.directory + " is existing."
         else:
             os.mkdir(DwfData.directory)
-            DwfData.logError = "New directory created: " + DwfData.directory
+            DwfData.status = "New directory created: " + DwfData.directory
             File_Operation.directory_manage()
 
 

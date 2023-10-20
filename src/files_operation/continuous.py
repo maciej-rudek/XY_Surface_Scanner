@@ -62,4 +62,4 @@ class Continuous_File:
         matplotlib.image.imsave(name_dir + '_CH2_Topo' + end_info + '.png', PictureData.CH3)
         matplotlib.image.imsave(name_dir + '_CH2_Error' + end_info + '.png', PictureData.CH4)
 
-        DwfData.logError = 'Saved: ' + DwfData.files + ", at: " + time_info + '  \t\t'
+        DwfData.status = 'Saved: ' + DwfData.files + ", at: " + time_info + '  \t\t'

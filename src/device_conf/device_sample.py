@@ -29,7 +29,7 @@ class Device_sample:
             SampleMode.hzAcq[1] = SampleMode.hzAcq[0]
             Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, SampleMode.hzAcq[0])
             Dwf.dw.FDwfAnalogInRecordLengthSet(Dwf.hdwf, c_double((SampleMode.sample/SampleMode.hzAcq[0].value) - 1))
-            DwfData.logError = "Data frequency success updated in device"
+            DwfData.status = "Data frequency success updated in device"
     
     
     def Upadate_sample_oCH():

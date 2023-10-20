@@ -49,10 +49,11 @@ class Device:
             szerr = create_string_buffer(512)
             Dwf.dw.FDwfGetLastErrorMsg(szerr)
             print(str(szerr.value))
-            DwfData.status = "Failed to open device :("
+            DwfData.logError = "Failed to open device :("
         else:
             time.sleep(2)
             Dwf.rghdwf.append(Dwf.hdwf.value)
+            DwfData.status = "First devise is connected"
 
 
     def Check_device():

@@ -85,7 +85,7 @@ class MenuParams:
         if(ScanParam.mode == Status.CONTINUOUS):
             ContinuousMode.phase_ch2 = c_double(data_params)
         else:
-            DwfData.logError = "NO Continuous mode ON !"
+            DwfData.logError = "NO continuous or semi mode ON !"
         
 ## INSTRUCTIONS:
 

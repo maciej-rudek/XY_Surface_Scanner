@@ -1,17 +1,19 @@
 import os
 import time
 import numpy as np
-
+from colorama import init
+from termcolor import colored
 from enum import Enum
 from ctypes import *
+
 from src.scan_data import ContinuousMode
 from src.scan_data import ImCont, SampleMode, Status, ScanParam, DwfData, Logtime, PictureData, PictureSCS
 from src.menu.menu_param import MenuParams
 
 LINE_UP = '\033[1A'
 LINE_CLEAR = '\x1b[2K'
-CONST_MENU_SAMPLE_MODE_REPEAT = 13
-CONST_MENU_CONTINUOUS_MODE_REPEAT = 15
+CONST_MENU_SAMPLE_MODE_REPEAT = 15
+CONST_MENU_CONTINUOUS_MODE_REPEAT = CONST_MENU_SAMPLE_MODE_REPEAT + 2
 
 width, height = os.get_terminal_size()
 
@@ -48,6 +50,7 @@ class MenuControll:
     @staticmethod
     def show_menu_parameters():
         print ("")
+        print("Scan Mode: \t " + colored(ScanParam.mode.value.upper() +  "     ", 'blue') )
         print("Scan sample: \t", SampleMode.sample, "     ")
         print("Resolution: \t", ScanParam.resolution, "     ")
         print("Scan area: \t", (ScanParam.area), "     ")
@@ -63,7 +66,8 @@ class MenuControll:
             
         print("="*width)
         print("DWF Ver: \t ", DwfData.version, "     ")
-        print("Log: \t\t", DwfData.logError, "     ")
+        print("Log: \t\t" + colored( DwfData.status + "     ", 'green'))
+        print("Error: \t\t" + colored( DwfData.logError + "     ", 'red'))
         print("-"*width)
         print(" " * width, end='\r')
 

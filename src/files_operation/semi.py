@@ -57,4 +57,4 @@ class Semi_File:
         matplotlib.image.imsave(name_dir + '_CH1_Topo' + end_info + '.png', PictureData.CHA)
         matplotlib.image.imsave(name_dir + '_CH1_Error' + end_info + '.png', PictureData.CHB)
 
-        DwfData.logError = 'Saved: ' + DwfData.files + ", at: " + time_info + '  \t\t'
+        DwfData.status = 'Saved: ' + DwfData.files + ", at: " + time_info + '  \t\t'
