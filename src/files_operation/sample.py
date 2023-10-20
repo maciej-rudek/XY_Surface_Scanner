@@ -31,13 +31,6 @@ class Sample_File:
         General_File.seave_time(f)        
         General_File.save_description(f)
         
-        f.write("-" * WIDTH + "\n")
-        
-        f.write("DWF Version: \t" + str(DwfData.version) + "\n")
-        
-        f.write("=" * WIDTH + "\n")
-        f.write("\n")
-        
         f.close()
     
     

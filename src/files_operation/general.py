@@ -46,3 +46,7 @@ class General_File:
         f.write("File title: \t" + str(DwfData.title) + "\n")
         f.write("Directory: \t" + str(DwfData.directory) + "\n")
         f.write("File nr.: \t" + str(DwfData.files) + "\n")
+        f.write("=" * General_File.WIDTH + "\n")
+        f.write("DWF Version: \t" + str(DwfData.version) + "\n")
+        f.write("=" * General_File.WIDTH + "\n")
+        f.write("\n")
