@@ -4,7 +4,7 @@ import numpy as np
 
 from enum import Enum
 from ctypes import *
-from src.scan_data import ImCont, SampleMode, ContinuousMode, Status, ScanParam, DwfData, PictureData, PictureSCS
+from src.scan_data import ImCont, SampleMode, ContinuousMode, Status, ScanParam, SemiMode, DwfData, PictureData, PictureSCS
 from src.files_operation.operation import File_Operation
 from src.device_conf.device import Device
 
@@ -44,7 +44,13 @@ class MenuParams:
     def param_freq(data_params):
         """Scan Frequency """
         dana = (int(data_params) % 2000) * 1000
-        SampleMode.hzAcq[0] = c_double(dana)
+        
+        if(ScanParam.mode == Status.SAMPLE):
+            SampleMode.hzAcq[0] = c_double(dana)
+        if(ScanParam.mode == Status.CONTINUOUS):
+            ContinuousMode.hzAcq[0] = c_double(dana)
+        if(ScanParam.mode == Status.SEMI):
+            SemiMode.hzAcq[0] = c_double(dana)
 
     @staticmethod
     def param_save(data_params):
@@ -74,7 +80,7 @@ class MenuParams:
     @staticmethod
     def param_phase1(data_params):
         """oCH 1 - phase shift"""
-        if(ScanParam.mode == Status.CONTINUOUS):
+        if(ScanParam.mode != Status.SAMPLE):
             ContinuousMode.phase_ch1 = c_double(data_params)
         else:
             DwfData.logError = "NO Continuous mode ON !"
@@ -82,7 +88,7 @@ class MenuParams:
     @staticmethod
     def param_phase2(data_params):
         """oCH 2 - phase shift"""
-        if(ScanParam.mode == Status.CONTINUOUS):
+        if(ScanParam.mode != Status.SAMPLE):
             ContinuousMode.phase_ch2 = c_double(data_params)
         else:
             DwfData.logError = "NO continuous or semi mode ON !"

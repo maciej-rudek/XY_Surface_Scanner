@@ -11,7 +11,7 @@ from src.files_operation.operation import File_Operation
 class Mode_semi:
     
     stan = 0
-    WAIT_START = 0.2   
+    WAIT_START = 0.05   
     
     def Scan():
         resolution = ScanParam.resolution

@@ -7,7 +7,7 @@ from enum import Enum
 from ctypes import *
 
 from src.scan_data import ContinuousMode
-from src.scan_data import ImCont, SampleMode, Status, ScanParam, DwfData, Logtime, PictureData, PictureSCS
+from src.scan_data import ImCont, SampleMode, Status, ScanParam, DwfData, SemiMode, Logtime, PictureData, PictureSCS
 from src.menu.menu_param import MenuParams
 
 LINE_UP = '\033[1A'
@@ -59,10 +59,14 @@ class MenuControll:
         print("Offset Y: \t", (ScanParam.offset_y), "     ")
         if(ScanParam.mode == Status.SAMPLE):
             print("Scan freq: \t", SampleMode.hzAcq[0].value, "     ")
-        else:
+        if(ScanParam.mode == Status.CONTINUOUS):
             print("Scan freq: \t", ContinuousMode.hzAcq[0].value, "     ")
             print("Phase ch1: \t", ContinuousMode.phase_ch1, "     ")
             print("Phase ch2: \t", ContinuousMode.phase_ch2, "     ")
+        if(ScanParam.mode == Status.SEMI):
+            print("Scan freq: \t", SemiMode.hzAcq[0].value, "     ")
+            print("Phase ch1: \t", SemiMode.phase_ch1, "     ")
+            print("Phase ch2: \t", SemiMode.phase_ch2, "     ")
             
         print("="*width)
         print("DWF Ver: \t ", DwfData.version, "     ")
