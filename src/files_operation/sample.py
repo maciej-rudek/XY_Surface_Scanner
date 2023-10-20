@@ -7,6 +7,7 @@ from pathlib import Path
 from dataclasses import dataclass
 
 from src.scan_data import PictureData, DwfData, ScanParam, SampleMode, Logtime
+from src.files_operation.general import General_File
 
 class Sample_File:
     
@@ -20,42 +21,16 @@ class Sample_File:
         
         f = open(name_dir + "_Raport_v1.txt", "a", encoding="utf-8")
         
-        f.write("=" * WIDTH + "\n")
-        f.write("        ┏  ┏┓         ┳┓           ┓      \n") 
-        f.write("        ┃  ┗┓┏┏┓┏┓    ┣┫┏┓┏┓┏┓┏┓╋  ┃      \n")
-        f.write("        ┗  ┗┛┗┗┻┛┗    ┛┗┗┻┣┛┗┛┛ ┗  ┛      \n")
-        f.write("                          ┛               \n")
-        #   tmplr font 
-        f.write("" + time_string + "\n")
-        f.write("=" * WIDTH + "\n")
+        General_File.save_header(f, time_string)
         
         f.write("Scan mode: \t >> SAMPLE << " + "\n")
+        
+        General_File.save_scan_params(f)
         f.write("Scan sample: \t" + str(SampleMode.sample) + "\n")
-        f.write("Resolution: \t"  + str(ScanParam.resolution) + " px \n")
-        f.write("Scan area: \t"  + str(ScanParam.area) + " % \n")
-        f.write("Scan area: \t"  + str(ScanParam.oxy) + " V \n")
-        f.write("Offset X: \t"  + str(ScanParam.offset_x) + "\n")
-        f.write("Offset Y: \t"  + str(ScanParam.offset_y) + "\n")
         f.write("Scan freq: \t" + str(SampleMode.hzAcq[0].value) + "\n")
         
-        f.write("-" * WIDTH + "\n")
-        
-        f.write("Time start: \t"  + str(Logtime.start) + "\n")
-        f.write("Time end: \t"  + str(Logtime.end) + "\n")
-        f.write("Duration: \t"  + str(Logtime.duration) + "\n")
-        
-        f.write("=" * WIDTH + "\n")
-        
-        f.write("File title: \t" + str(DwfData.title) + "\n")
-        f.write("Directory: \t" + str(DwfData.directory) + "\n")
-        f.write("File nr.: \t" + str(DwfData.files) + "\n")
-        
-        f.write("-" * WIDTH + "\n")
-        
-        f.write("DWF Version: \t" + str(DwfData.version) + "\n")
-        
-        f.write("=" * WIDTH + "\n")
-        f.write("\n")
+        General_File.seave_time(f)        
+        General_File.save_description(f)
         
         f.close()
     
