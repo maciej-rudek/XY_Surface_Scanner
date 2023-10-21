@@ -43,13 +43,14 @@ class MenuParams:
     @staticmethod
     def param_freq(data_params):
         """Scan Frequency """
-        dana = (int(data_params) % 2000) * 1000
         
         if(ScanParam.mode == Status.SAMPLE):
+            dana = (int(data_params) % 2000) * 1000
             SampleMode.hzAcq[0] = c_double(dana)
         if(ScanParam.mode == Status.CONTINUOUS):
             ContinuousMode.hzAcq[0] = c_double(dana)
         if(ScanParam.mode == Status.SEMI):
+            dana = float(data_params)
             SemiMode.hzAcq[0] = c_double(dana)
 
     @staticmethod
@@ -92,6 +93,11 @@ class MenuParams:
             ContinuousMode.phase_ch2 = c_double(data_params)
         else:
             DwfData.logError = "NO continuous or semi mode ON !"
+    
+    @staticmethod
+    def param_x(data_params):
+        """x - type of scan [sinus, trangle]"""
+        ScanParam.x_scan = Status(data_params)
         
 ## INSTRUCTIONS:
 

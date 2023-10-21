@@ -15,8 +15,8 @@ class Device_semi:
 
     def Set_shift_aqusition():
         hzAcq_A = SemiMode.hzAcq[0]
-        iterations = (SemiMode.buf_size - 50)
-        frequency = iterations * hzAcq_A
+        iterations = float(SemiMode.buf_size - 50)
+        frequency = iterations * hzAcq_A.value
         
         Dwf.dw.FDwfAnalogInChannelEnableSet(Dwf.hdwf, c_int(-1), c_int(1))
         Dwf.dw.FDwfAnalogInChannelOffsetSet(Dwf.hdwf, c_int(-1), c_double(0)) 
@@ -75,11 +75,14 @@ class Device_semi:
         hzAcq_A = SemiMode.hzAcq[0]
         runtime = 1 / hzAcq_A.value
         Dwf.dw.FDwfDeviceAutoConfigureSet(Dwf.hdwf, c_int(3)) # dynamic mode to change parameters
-        # Device_semi.Primitive_positioning()
-        
+        # Device_semi.Primitive_positioning()        
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(True))
-        # Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcSine)
-        Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcTriangle)
+        
+        if(ScanParam.x_scan == Status.SINUS):
+            Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcSine)
+        if(ScanParam.x_scan == Status.TRIANGLE):
+            Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcTriangle)
+            
         Dwf.dw.FDwfAnalogOutNodeFrequencySet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, hzAcq_A)
         Dwf.dw.FDwfAnalogOutNodeAmplitudeSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, oxy)
         Dwf.dw.FDwfAnalogOutNodePhaseSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, SemiMode.phase_ch1)
