@@ -15,7 +15,6 @@ class Device:
         Dwf.dw.FDwfAnalogInReset(Dwf.hdwf)
         Dwf.dw.FDwfAnalogOutReset(Dwf.hdwf)
     
-    
     def Configure_setup_mode():
         # Device.Close_ALL()
         # Device.Open_device()
@@ -28,7 +27,8 @@ class Device:
             Device_sample.Set_signal_output()
             
         if (ScanParam.mode == Status.CONTINUOUS):
-            pic.ax_AB_visable(True)
+            # pic.ax_AB_visable(True)
+            pic.ax_1256_visable(True)
             # Device_conti.Set_continuous_sin_output() # Only for test 
             Device_conti.Set_start_offset_output()
             Device_conti.Set_shift_aqusition()
@@ -43,8 +43,9 @@ class Device:
     
     def Open_device():
         DwfData.status = "Opening first device"
-        Dwf.dw.FDwfDeviceOpen(c_int(-1), byref(Dwf.hdwf))
-
+        # 2nd configuration for Analog Disocovery with 16k analog-in buffer
+        Dwf.dw.FDwfDeviceConfigOpen(c_int(-1), c_int(1), byref(Dwf.hdwf)) 
+        
         if Dwf.hdwf.value == hdwfNone.value:
             szerr = create_string_buffer(512)
             Dwf.dw.FDwfGetLastErrorMsg(szerr)
@@ -54,6 +55,7 @@ class Device:
             time.sleep(2)
             Dwf.rghdwf.append(Dwf.hdwf.value)
             DwfData.status = "First devise is connected"
+            Device.Reset_device()
 
 
     def Check_device():

@@ -74,11 +74,11 @@ class PictureSCS:
 class ScanParam:
     scan = Status.STOP
     scan_update = False
-    mode = Status.SEMI
-    mode_new = Status.SEMI
+    mode = Status.CONTINUOUS
+    mode_new = Status.CONTINUOUS
     x_scan = Status.TRIANGLE
     y_scan = Status.TRIANGLE 
-    resolution = 200
+    resolution = 100
     area = 100
     oxy = MAX_VOLTAGE * area / MAX_AREA
     offset_x = 0
@@ -95,15 +95,16 @@ class SampleMode: #ScanSample:
     
 @dataclass
 class ContinuousMode:
-    sample = 10000
     hzAcq = [c_double(1), c_double(1)]
-    buf_size = 1000
+    buf_size = 16384
     phase_ch1 = c_double(90.0)
-    phase_ch2 = c_double(90.0)
+    phase_ch2 = c_double(-90.0)
     DataCH1: c_double = (c_double*buf_size)()
     DataCH2: c_double = (c_double*buf_size)()
     f_ch1 = np.arange(buf_size, dtype=float)
     f_ch2 = np.arange(buf_size, dtype=float)
+    v_ch1 = np.arange(ScanParam.resolution * 2, dtype=float)
+    v_ch2 = np.arange(ScanParam.resolution * 2, dtype=float)
 
 
 @dataclass
@@ -128,6 +129,16 @@ class PictureData:
     CHC: float = np.zeros((ScanParam.resolution, SemiMode.buf_size))
     line: int = 0
     save = Status.NO
+    
+    def reshape_CHAB(x, y):
+        PictureData.CHA: float = np.zeros((x, y))
+        PictureData.CHB: float = np.zeros((x, y))
+    
+    def reshape_CH1234(x, y):
+        PictureData.CH1: float = np.zeros((x, y))
+        PictureData.CH2: float = np.zeros((x, y))
+        PictureData.CH3: float = np.zeros((x, y))
+        PictureData.CH4: float = np.zeros((x, y))
 
 
 def print_class(what_class):

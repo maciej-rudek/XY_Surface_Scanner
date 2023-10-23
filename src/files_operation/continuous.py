@@ -27,7 +27,6 @@ class Continuous_File:
         
         General_File.save_scan_params(f)
         
-        f.write("Scan sample: \t" + str(ContinuousMode.sample) + "\n")
         f.write("Scan freq: \t" + str(ContinuousMode.hzAcq[0].value) + "\n")
         f.write("Buf size: \t" + str(ContinuousMode.buf_size) + "\n")
         f.write("Phaze ch1: \t" + str(ContinuousMode.phase_ch1) + "\n")
