@@ -24,7 +24,6 @@ class MenuParams:
             SampleMode.f_ch2 = np.arange(SampleMode.sample, dtype=float)
             
         if(ScanParam.mode == Status.CONTINUOUS):
-            ContinuousMode.sample = int(data_params) % 20000
             ContinuousMode.DataCH1 = (c_double*SampleMode.sample)()
             ContinuousMode.DataCH2= (c_double*SampleMode.sample)()
             ContinuousMode.f_ch1 = np.arange(SampleMode.sample, dtype=float)
