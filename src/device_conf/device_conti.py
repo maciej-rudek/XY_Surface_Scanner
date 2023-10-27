@@ -14,13 +14,17 @@ class Device_conti:
 
 
     def Set_shift_aqusition(): 
+        hzAcq_A = ContinuousMode.hzAcq[0]
+        iterations = float(ContinuousMode.buf_size - 50)
+        frequency = iterations * hzAcq_A.value
+        
         Dwf.dw.FDwfAnalogInChannelEnableSet(Dwf.hdwf, c_int(-1), c_int(1))
         Dwf.dw.FDwfAnalogInChannelOffsetSet(Dwf.hdwf, c_int(-1), c_double(0)) 
         Dwf.dw.FDwfAnalogInChannelRangeSet(Dwf.hdwf, iCH_0, c_double(10))
         Dwf.dw.FDwfAnalogInChannelRangeSet(Dwf.hdwf, iCH_1, c_double(10))
         Dwf.dw.FDwfAnalogInAcquisitionModeSet(Dwf.hdwf, acqmodeScanShift)
         Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(1), c_int(0)) 
-        Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, c_double(200))
+        Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, c_double(frequency))
         Dwf.dw.FDwfAnalogInBufferSizeSet(Dwf.hdwf,  c_int(ContinuousMode.buf_size))
         Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
 
@@ -30,35 +34,12 @@ class Device_conti:
         Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_B, AnalogOutNodeCarrier, c_double(0))
         
     
-    def Primitive_positioning():
-        # To change
-        Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(True))
-        Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcDC)
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(0))
-        time.sleep(0.05)
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(1))
-        time.sleep(0.05)
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(2))
-        time.sleep(0.05)
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(3))
-        time.sleep(0.05)
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(4))
-        time.sleep(0.05)
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(5))
-        time.sleep(0.05)
-        Dwf.dw.FDwfAnalogOutIdleSet(Dwf.hdwf, oCH_A, DwfAnalogOutIdleOffset) 
-        Dwf.dw.FDwfAnalogOutIdleSet(Dwf.hdwf, oCH_B, DwfAnalogOutIdleOffset) 
-        
-        Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(True))
-    
-    
     def Set_continuous_sin_output():
         oxy = c_double(ScanParam.oxy)
         resolution = ScanParam.resolution
         hzAcq_A = ContinuousMode.hzAcq[0]
         hzAcq_B = c_double(hzAcq_A.value / ( resolution * 2 ) ) # 2: L->R, R->L in "one" line
         Dwf.dw.FDwfDeviceAutoConfigureSet(Dwf.hdwf, c_int(3)) # dynamic mode to change parameters
-        # Device_conti.Primitive_positioning()
         
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(True))
         Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcSine)
