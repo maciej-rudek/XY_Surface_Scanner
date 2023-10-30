@@ -15,8 +15,8 @@ class Device_conti:
 
     def Set_shift_aqusition(): 
         hzAcq_A = ContinuousMode.hzAcq[0]
-        iterations = float(ContinuousMode.buf_size - 50)
-        frequency = iterations * hzAcq_A.value
+        iterations = float(ScanParam.resolution)
+        frequency = hzAcq_A.value * iterations
         
         Dwf.dw.FDwfAnalogInChannelEnableSet(Dwf.hdwf, c_int(-1), c_int(1))
         Dwf.dw.FDwfAnalogInChannelOffsetSet(Dwf.hdwf, c_int(-1), c_double(0)) 
@@ -39,19 +39,27 @@ class Device_conti:
         resolution = ScanParam.resolution
         hzAcq_A = ContinuousMode.hzAcq[0]
         hzAcq_B = c_double(hzAcq_A.value / ( resolution * 2 ) ) # 2: L->R, R->L in "one" line
+        runtime = 1 / hzAcq_B.value
         Dwf.dw.FDwfDeviceAutoConfigureSet(Dwf.hdwf, c_int(3)) # dynamic mode to change parameters
         
+        # FAST scan - X
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(True))
-        Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcSine)
+        if(ScanParam.x_scan == Status.SINUS):
+            Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcSine)
+        if(ScanParam.x_scan == Status.TRIANGLE):
+            Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, funcTriangle)
         Dwf.dw.FDwfAnalogOutNodeFrequencySet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, hzAcq_A)
         Dwf.dw.FDwfAnalogOutNodeAmplitudeSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, oxy)
         Dwf.dw.FDwfAnalogOutNodePhaseSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, ContinuousMode.phase_ch1)
         
+        # SLOW scan - Y
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_B, AnalogOutNodeCarrier, c_bool(True))
         Dwf.dw.FDwfAnalogOutNodeFunctionSet(Dwf.hdwf, oCH_B, AnalogOutNodeCarrier, funcTriangle)
         Dwf.dw.FDwfAnalogOutNodeFrequencySet(Dwf.hdwf, oCH_B, AnalogOutNodeCarrier, hzAcq_B)
         Dwf.dw.FDwfAnalogOutNodeAmplitudeSet(Dwf.hdwf,oCH_B, AnalogOutNodeCarrier, oxy)
         Dwf.dw.FDwfAnalogOutNodePhaseSet(Dwf.hdwf, oCH_B, AnalogOutNodeCarrier, ContinuousMode.phase_ch2)
+        
+        Dwf.dw.FDwfAnalogOutRunSet(Dwf.hdwf, oCH_A, c_double(runtime)) # run once 
         
         Dwf.dw.FDwfAnalogOutConfigure(Dwf.hdwf, oCH_A, c_bool(True))
         Dwf.dw.FDwfAnalogOutConfigure(Dwf.hdwf, oCH_B, c_bool(True))
@@ -74,6 +82,7 @@ class Device_conti:
         
         Dwf.dw.FDwfAnalogInStatusData(Dwf.hdwf, iCH_0, byref(ContinuousMode.DataCH1), cValid) # get channel 1 data
         Dwf.dw.FDwfAnalogInStatusData(Dwf.hdwf, iCH_1, byref(ContinuousMode.DataCH2), cValid) # get channel 2 data
+        return cValid.value
 
 
 

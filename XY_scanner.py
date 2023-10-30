@@ -44,8 +44,6 @@ def Start_AD2():
             Device_sample.Update_freqency()
             
         if (ScanParam.mode == Status.CONTINUOUS):   # Not working
-            if (ScanParam.scan == Status.START):
-                Device_conti.First_configuration()
             Mode_continuous.Scan()
         
         if (ScanParam.mode == Status.SEMI):         # In progress
