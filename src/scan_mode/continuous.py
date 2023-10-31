@@ -31,25 +31,27 @@ class Mode_continuous:
             
             line = (actual - (actual % double_res)) / double_res
             
-            if((actual - 1) == ContinuousMode.buf_size):
-                ScanParam.scan = Status.STOP
-                ImCont.x = 0
-                ImCont.y = 0
-                # File_Operation.save_manager_files()
             
             if (line > 0 and line < Mode_continuous.max_y_lines):
                 
                 for y_line in range(int(Mode_continuous.old_line),int(line), 1):
-                    PictureData.CHA[y_line, 0:double_res] = ContinuousMode.f_ch1[y_line * double_res : (y_line+1) * double_res]
-                    PictureData.CHB[y_line, 0:double_res] = ContinuousMode.f_ch2[y_line * double_res : (y_line+1) * double_res]
-            
+                    PictureData.CH1[y_line, 0:resolution] = ContinuousMode.f_ch1[(y_line * double_res) : ((y_line * double_res) + resolution)]
+                    PictureData.CH2[y_line, 0:resolution] = ContinuousMode.f_ch2[(y_line * double_res) : ((y_line * double_res) + resolution)]
+                    PictureData.CH3[y_line, 0:resolution] = ContinuousMode.f_ch1[((y_line * double_res) + resolution) : (y_line+1) * double_res]
+                    PictureData.CH4[y_line, 0:resolution] = ContinuousMode.f_ch2[((y_line * double_res) + resolution) : (y_line+1) * double_res]
+            else: 
+                ScanParam.scan = Status.STOP
+                ImCont.x = 0
+                ImCont.y = 0
+                File_Operation.save_manager_files()
+                
             time.sleep(Wait_stop)
             Mode_continuous.old_line = line
 
         else:
             Mode_continuous.max_y_lines = int(ContinuousMode.buf_size/double_res)
             
-            PictureData.reshape_CHAB(Mode_continuous.max_y_lines,double_res)
+            PictureData.reshape_CH1234(Mode_continuous.max_y_lines, resolution)
             Mode_continuous.old_line = 0
             time.sleep(Mode_continuous.WAIT_START)
             actual = 0

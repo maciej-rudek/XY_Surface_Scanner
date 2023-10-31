@@ -27,8 +27,8 @@ class Device:
             Device_sample.Set_signal_output()
             
         if (ScanParam.mode == Status.CONTINUOUS):
-            pic.ax_AB_visable(True)
-            # pic.ax_1256_visable(True)
+            # pic.ax_AB_visable(True)
+            pic.ax_1256_visable(True)
             # Device_conti.Set_continuous_sin_output() # Only for test 
             Device_conti.Set_start_offset_output()
             Device_conti.Set_shift_aqusition()

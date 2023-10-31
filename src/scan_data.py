@@ -79,7 +79,6 @@ class ScanParam:
     x_scan = Status.TRIANGLE
     y_scan = Status.TRIANGLE 
     resolution = 100
-    resolution = 100
     area = 100
     oxy = MAX_VOLTAGE * area / MAX_AREA
     offset_x = 0
