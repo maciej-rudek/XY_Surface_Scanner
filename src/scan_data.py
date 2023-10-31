@@ -128,6 +128,16 @@ class PictureData:
     CHC: float = np.zeros((ScanParam.resolution, SemiMode.buf_size))
     line: int = 0
     save = Status.NO
+    
+    def reshape_CHAB(x, y):
+        PictureData.CHA: float = np.zeros((x, y))
+        PictureData.CHB: float = np.zeros((x, y))
+    
+    def reshape_CH1234(x, y):
+        PictureData.CH1: float = np.zeros((x, y))
+        PictureData.CH2: float = np.zeros((x, y))
+        PictureData.CH3: float = np.zeros((x, y))
+        PictureData.CH4: float = np.zeros((x, y))
 
 
 def print_class(what_class):

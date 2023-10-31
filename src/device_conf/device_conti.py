@@ -16,7 +16,7 @@ class Device_conti:
     def Set_shift_aqusition(): 
         hzAcq_A = ContinuousMode.hzAcq[0]
         iterations = float(ScanParam.resolution)
-        frequency = hzAcq_A.value * iterations
+        frequency = hzAcq_A.value * iterations * 2
         
         Dwf.dw.FDwfAnalogInChannelEnableSet(Dwf.hdwf, c_int(-1), c_int(1))
         Dwf.dw.FDwfAnalogInChannelOffsetSet(Dwf.hdwf, c_int(-1), c_double(0)) 
