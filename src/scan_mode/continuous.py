@@ -1,6 +1,7 @@
 
 from ctypes import *
 import time
+import numpy as np
 
 from src.scan_data import ImCont, ContinuousMode, DwfData, ScanParam, Status, PictureData
 from src.device_conf.device import *
@@ -39,6 +40,8 @@ class Mode_continuous:
                     PictureData.CH2[y_line, 0:resolution] = ContinuousMode.f_ch2[(y_line * double_res) : ((y_line * double_res) + resolution)]
                     PictureData.CH3[y_line, 0:resolution] = ContinuousMode.f_ch1[((y_line * double_res) + resolution) : (y_line+1) * double_res]
                     PictureData.CH4[y_line, 0:resolution] = ContinuousMode.f_ch2[((y_line * double_res) + resolution) : (y_line+1) * double_res]
+                    ContinuousMode.v_ch1[0:double_res] = ContinuousMode.f_ch1[y_line * double_res : (y_line+1) * double_res]
+                    ContinuousMode.v_ch2[0:double_res] = ContinuousMode.f_ch2[y_line * double_res : (y_line+1) * double_res]
             else: 
                 ScanParam.scan = Status.STOP
                 ImCont.x = 0
@@ -48,8 +51,16 @@ class Mode_continuous:
             time.sleep(Wait_stop)
             Mode_continuous.old_line = line
 
-        else:
+        else: # STOP SCAN
             Mode_continuous.max_y_lines = int(ContinuousMode.buf_size/double_res)
+            
+            ContinuousMode.v_ch1[0:double_res] = ContinuousMode.f_ch1[0 : double_res]
+            ContinuousMode.v_ch2[0:double_res] = ContinuousMode.f_ch2[0 : double_res]
+            
+            PictureData.CH1 = np.zeros((resolution, resolution))
+            PictureData.CH2 = np.zeros((resolution, resolution))
+            PictureData.CH3 = np.zeros((resolution, resolution))
+            PictureData.CH4 = np.zeros((resolution, resolution))
             
             PictureData.reshape_CH1234(Mode_continuous.max_y_lines, resolution)
             Mode_continuous.old_line = 0

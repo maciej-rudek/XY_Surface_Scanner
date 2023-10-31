@@ -95,7 +95,7 @@ class SampleMode: #ScanSample:
     
 @dataclass
 class ContinuousMode:
-    hzAcq = [c_double(1), c_double(1)]
+    hzAcq = [c_double(5), c_double(5)]
     buf_size = 16384
     phase_ch1 = c_double(90.0)
     phase_ch2 = c_double(-90.0)
@@ -103,6 +103,8 @@ class ContinuousMode:
     DataCH2: c_double = (c_double*buf_size)()
     f_ch1 = np.arange(buf_size, dtype=float)
     f_ch2 = np.arange(buf_size, dtype=float)
+    v_ch1 = np.arange(ScanParam.resolution * 2, dtype=float)
+    v_ch2 = np.arange(ScanParam.resolution * 2, dtype=float)
 
 
 @dataclass
