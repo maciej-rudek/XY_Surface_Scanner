@@ -95,7 +95,7 @@ class SampleMode: #ScanSample:
     
 @dataclass
 class ContinuousMode:
-    hzAcq = [c_double(5), c_double(5)]
+    hzAcq = [c_double(1), c_double(1)]
     buf_size = 16384
     phase_ch1 = c_double(90.0)
     phase_ch2 = c_double(-90.0)

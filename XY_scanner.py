@@ -91,8 +91,8 @@ def Update_pictures(frames):
                 x = np.linspace(0, SampleMode.sample, SampleMode.sample)
                 pic.ax3.plot(x[1:SampleMode.sample], SampleMode.DataCH1[1:SampleMode.sample], color="C1")
             if(ScanParam.mode == Status.CONTINUOUS):
-                x = np.linspace(0, ScanParam.resolution * 2, ScanParam.resolution * 2)
-                pic.ax3.plot(x[1:ScanParam.resolution * 2], ContinuousMode.v_ch1[1 : (ScanParam.resolution * 2)], color="C1")
+                x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
+                pic.ax3.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch1[1:ContinuousMode.buf_size], color="C1")
             if(ScanParam.mode == Status.SEMI):
                 x = np.linspace(0, SemiMode.buf_size, SemiMode.buf_size)
                 pic.ax3.plot(x[1:SemiMode.buf_size], SemiMode.f_ch1[1:SemiMode.buf_size], color="C1")
@@ -127,8 +127,8 @@ def Update_pictures(frames):
                 x = np.linspace(0, SampleMode.sample, SampleMode.sample)
                 pic.ax4.plot(x[1:SampleMode.sample], SampleMode.DataCH2[1:SampleMode.sample], color="C0")
             if(ScanParam.mode == Status.CONTINUOUS):
-                x = np.linspace(0, (ScanParam.resolution * 2), (ScanParam.resolution * 2))
-                pic.ax4.plot(x[1:(ScanParam.resolution * 2)], ContinuousMode.v_ch2[1 : (ScanParam.resolution * 2)], color="C0")
+                x = np.linspace(0, ContinuousMode.buf_size, ContinuousMode.buf_size)
+                pic.ax4.plot(x[1:ContinuousMode.buf_size], ContinuousMode.f_ch2[1:ContinuousMode.buf_size], color="C0")
             if(ScanParam.mode == Status.SEMI):
                 x = np.linspace(0, SemiMode.buf_size, SemiMode.buf_size)
                 pic.ax4.plot(x[1:SemiMode.buf_size], SemiMode.f_ch2[1:SemiMode.buf_size], color="C0")
