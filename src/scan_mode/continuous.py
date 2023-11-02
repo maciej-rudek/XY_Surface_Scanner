@@ -44,8 +44,6 @@ class Mode_continuous:
                     ContinuousMode.v_ch2[0:double_res] = ContinuousMode.f_ch2[y_line * double_res : (y_line+1) * double_res]
             else: 
                 ScanParam.scan = Status.STOP
-                ImCont.x = 0
-                ImCont.y = 0
                 File_Operation.save_manager_files()
                 
             time.sleep(Wait_stop)

@@ -43,10 +43,10 @@ def Start_AD2():
             Mode_sample.Scan()
             Device_sample.Update_freqency()
             
-        if (ScanParam.mode == Status.CONTINUOUS):   # Not working
+        if (ScanParam.mode == Status.CONTINUOUS):   # Working
             Mode_continuous.Scan()
         
-        if (ScanParam.mode == Status.SEMI):         # In progress
+        if (ScanParam.mode == Status.SEMI):         # Working
             Mode_semi.Scan()
         
         if(ScanParam.scan == Status.STOP):
