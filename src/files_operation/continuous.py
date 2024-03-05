@@ -30,8 +30,8 @@ class Continuous_File:
         f.write("X pattern: \t" + str(ScanParam.x_scan.value.upper()) + "\n")
         f.write("Scan freq: \t" + str(ContinuousMode.hzAcq[0].value) + "\n")
         f.write("Buf size: \t" + str(ContinuousMode.buf_size) + "\n")
-        f.write("Phaze ch1: \t" + str(ContinuousMode.phase_ch1) + "\n")
-        f.write("Phaze ch2: \t" + str(ContinuousMode.phase_ch2) + "\n")
+        f.write("Phaze ch1: \t" + str(ContinuousMode.phase_ch1.value) + "\n")
+        f.write("Phaze ch2: \t" + str(ContinuousMode.phase_ch2.value) + "\n")
         
         General_File.seave_time(f)        
         General_File.save_description(f)

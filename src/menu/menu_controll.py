@@ -62,13 +62,13 @@ class MenuControll:
             print("Scan freq: \t", SampleMode.hzAcq[0].value, "     ")
         if(ScanParam.mode == Status.CONTINUOUS):
             print("Scan freq: \t", ContinuousMode.hzAcq[0].value, "     ")
-            print("Phase ch1: \t", ContinuousMode.phase_ch1, "     ")
-            print("Phase ch2: \t", ContinuousMode.phase_ch2, "     ")
+            print("Phase ch1: \t", ContinuousMode.phase_ch1.value, "     ")
+            print("Phase ch2: \t", ContinuousMode.phase_ch2.value, "     ")
         if(ScanParam.mode == Status.SEMI):
             print("X pattern: \t " + colored(ScanParam.x_scan.value.upper() + "     ", 'blue') )
             print("Scan freq: \t", SemiMode.hzAcq[0].value, "     ")
-            print("Phase ch1: \t", SemiMode.phase_ch1, "     ")
-            print("Phase ch2: \t", SemiMode.phase_ch2, "     ")
+            print("Phase ch1: \t", SemiMode.phase_ch1.value, "     ")
+            print("Phase ch2: \t", SemiMode.phase_ch2.value, "     ")
             
         print("="*width)
         print("DWF Ver: \t", DwfData.version, "     ")
