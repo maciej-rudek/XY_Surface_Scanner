@@ -15,6 +15,7 @@ class Mode_continuous:
     state = 0
     old_line = 0
     max_y_lines = 0
+    tail = 0
 
     def Scan():
         Wait_stop = ( 1 / ContinuousMode.hzAcq[0].value ) * 2
@@ -32,17 +33,18 @@ class Mode_continuous:
             
             line = (actual - (actual % double_res)) / double_res
             
-            
             if (line > 0 and line < Mode_continuous.max_y_lines):
                 
-                for y_line in range(int(Mode_continuous.old_line),int(line), 1):
+                for y_line in range(int(Mode_continuous.old_line), int(line), 1):
                     PictureData.CH1[y_line, 0:resolution] = ContinuousMode.f_ch1[(y_line * double_res) : ((y_line * double_res) + resolution)]
                     PictureData.CH2[y_line, 0:resolution] = ContinuousMode.f_ch2[(y_line * double_res) : ((y_line * double_res) + resolution)]
                     PictureData.CH3[y_line, 0:resolution] = ContinuousMode.f_ch1[((y_line * double_res) + resolution) : (y_line+1) * double_res]
                     PictureData.CH4[y_line, 0:resolution] = ContinuousMode.f_ch2[((y_line * double_res) + resolution) : (y_line+1) * double_res]
                     ContinuousMode.v_ch1[0:double_res] = ContinuousMode.f_ch1[y_line * double_res : (y_line+1) * double_res]
                     ContinuousMode.v_ch2[0:double_res] = ContinuousMode.f_ch2[y_line * double_res : (y_line+1) * double_res]
-            else: 
+            # else: 
+            
+            if(line == resolution):
                 ScanParam.scan = Status.STOP
                 File_Operation.save_manager_files()
                 
@@ -51,6 +53,7 @@ class Mode_continuous:
 
         else: # STOP SCAN
             Mode_continuous.max_y_lines = int(ContinuousMode.buf_size/double_res)
+            Mode_continuous.tail = ContinuousMode.buf_size - Mode_continuous.max_y_lines
             
             ContinuousMode.v_ch1[0:double_res] = ContinuousMode.f_ch1[0 : double_res]
             ContinuousMode.v_ch2[0:double_res] = ContinuousMode.f_ch2[0 : double_res]
@@ -60,7 +63,8 @@ class Mode_continuous:
             PictureData.CH3 = np.zeros((resolution, resolution))
             PictureData.CH4 = np.zeros((resolution, resolution))
             
-            PictureData.reshape_CH1234(Mode_continuous.max_y_lines, resolution)
+            # PictureData.reshape_CH1234(Mode_continuous.max_y_lines, resolution)
+            PictureData.reshape_CH1234(resolution, resolution)
             Mode_continuous.old_line = 0
             time.sleep(Mode_continuous.WAIT_START)
             actual = 0
