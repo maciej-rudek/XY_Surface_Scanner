@@ -32,24 +32,29 @@ class Mode_continuous:
             
             Device_conti.First_configuration()
             
-            line = (actual - (actual % double_res)) / double_res + Mode_continuous.line_offset
+            line = (actual - (actual % double_res)) / double_res
             
             if (line > 0 and line < resolution):
                 
                 for y_line in range(int(Mode_continuous.old_line), int(line), 1):
-                    PictureData.CH1[y_line, 0:resolution] = ContinuousMode.f_ch1[(y_line * double_res) : ((y_line * double_res) + resolution)]
-                    PictureData.CH2[y_line, 0:resolution] = ContinuousMode.f_ch2[(y_line * double_res) : ((y_line * double_res) + resolution)]
-                    PictureData.CH3[y_line, 0:resolution] = ContinuousMode.f_ch1[((y_line * double_res) + resolution) : (y_line+1) * double_res]
-                    PictureData.CH4[y_line, 0:resolution] = ContinuousMode.f_ch2[((y_line * double_res) + resolution) : (y_line+1) * double_res]
-                    ContinuousMode.v_ch1[0:double_res] = ContinuousMode.f_ch1[y_line * double_res : (y_line+1) * double_res]
-                    ContinuousMode.v_ch2[0:double_res] = ContinuousMode.f_ch2[y_line * double_res : (y_line+1) * double_res]
+                    y_lin = y_line + Mode_continuous.line_offset
+                    if(y_lin < resolution):
+                        # ress_off = resolution + Mode_continuous.line_offset
+                        PictureData.CH1[y_lin, 0:resolution] = ContinuousMode.f_ch1[(y_line * double_res) : ((y_line * double_res) + resolution)]
+                        PictureData.CH2[y_lin, 0:resolution] = ContinuousMode.f_ch2[(y_line * double_res) : ((y_line * double_res) + resolution)]
+                        PictureData.CH3[y_lin, 0:resolution] = ContinuousMode.f_ch1[((y_line * double_res) + resolution) : (y_line+1) * double_res]
+                        PictureData.CH4[y_lin, 0:resolution] = ContinuousMode.f_ch2[((y_line * double_res) + resolution) : (y_line+1) * double_res]
+                        ContinuousMode.v_ch1[0:double_res] = ContinuousMode.f_ch1[y_line * double_res : (y_line+1) * double_res]
+                        ContinuousMode.v_ch2[0:double_res] = ContinuousMode.f_ch2[y_line * double_res : (y_line+1) * double_res]
+                    else:
+                        break
             
             Mode_continuous.old_line = line
             
             if (line == Mode_continuous.max_y_lines):
                 
                 tail = ContinuousMode.buf_size + Mode_continuous.tail - ( Mode_continuous.max_y_lines * double_res )   # reset of buffor to use
-                Device_conti.Set_continuous_sin_output()
+                Device_conti.Set_shift_aqusition()
                 time.sleep(Wait_stop) 
                 actual = Device_conti.Get_conti_data() + tail #check if we can achive one full line
                 
@@ -58,24 +63,26 @@ class Mode_continuous:
                     ContinuousMode.f_ch2[i] = float(ContinuousMode.DataCH2[i])
                     
                 line = (actual - (actual % double_res)) / double_res
-                Mode_continuous.line_offset = Mode_continuous.old_line + line
+                Mode_continuous.line_offset = int(Mode_continuous.old_line + Mode_continuous.line_offset)
                 Mode_continuous.old_line = 0
-                print("line: ", line, ", line_offset: ", Mode_continuous.line_offset)
-                # put data to picture - take line_offset insed of line 
-            
-                if (line > 0 and line < resolution):
                 
-                    for y_line in range(int(Mode_continuous.old_line), int(line), 1):
-                        PictureData.CH1[y_line, 0:resolution] = ContinuousMode.f_ch1[(y_line * double_res) + tail : ((y_line * double_res) + resolution  + tail)]
-                        PictureData.CH2[y_line, 0:resolution] = ContinuousMode.f_ch2[(y_line * double_res) + tail : ((y_line * double_res) + resolution  + tail)]
-                        PictureData.CH3[y_line, 0:resolution] = ContinuousMode.f_ch1[((y_line * double_res) + tail + resolution) : (y_line+1) * double_res  + tail]
-                        PictureData.CH4[y_line, 0:resolution] = ContinuousMode.f_ch2[((y_line * double_res) + tail + resolution) : (y_line+1) * double_res  + tail]
+                for y_line in range(int(Mode_continuous.old_line), int(line), 1):
+                    y_lin = y_line + Mode_continuous.line_offset
+                    if(y_lin < resolution):
+                        # print("actual: ", actual, ", line: ", line, ", line_offset: ", Mode_continuous.line_offset, ", tail:", tail)
+                        # print("y: ", y_lin, ", A: ", ((y_line * double_res) + tail), ", B:", ((y_line * double_res) + resolution  + tail), ", off:", Mode_continuous.line_offset, "\n")
+                        PictureData.CH1[y_lin, 0:resolution] = ContinuousMode.f_ch1[(y_line * double_res) + tail : ((y_line * double_res) + resolution  + tail)]
+                        PictureData.CH2[y_lin, 0:resolution] = ContinuousMode.f_ch2[(y_line * double_res) + tail : ((y_line * double_res) + resolution  + tail)]
+                        PictureData.CH3[y_lin, 0:resolution] = ContinuousMode.f_ch1[((y_line * double_res) + tail + resolution) : (y_line+1) * double_res  + tail]
+                        PictureData.CH4[y_lin, 0:resolution] = ContinuousMode.f_ch2[((y_line * double_res) + tail + resolution) : (y_line+1) * double_res  + tail]
                         ContinuousMode.v_ch1[0:double_res] = ContinuousMode.f_ch1[y_line * double_res : (y_line+1) * double_res]
                         ContinuousMode.v_ch2[0:double_res] = ContinuousMode.f_ch2[y_line * double_res : (y_line+1) * double_res]
+                    else:
+                        break
             
-                Mode_continuous.tail = actual - (line * double_res)
+                Mode_continuous.tail = int(actual - (line * double_res))
             
-            if(line == resolution):
+            if(Mode_continuous.line_offset + line >= resolution):
                 ScanParam.scan = Status.STOP
                 File_Operation.save_manager_files()
                 
@@ -84,7 +91,7 @@ class Mode_continuous:
 
         else: # STOP SCAN
             Mode_continuous.max_y_lines = int(ContinuousMode.buf_size/double_res)
-            Mode_continuous.tail = ContinuousMode.buf_size - Mode_continuous.max_y_lines
+            Mode_continuous.tail = 0
             
             ContinuousMode.v_ch1[0:double_res] = ContinuousMode.f_ch1[0 : double_res]
             ContinuousMode.v_ch2[0:double_res] = ContinuousMode.f_ch2[0 : double_res]
