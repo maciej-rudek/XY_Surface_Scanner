@@ -147,7 +147,7 @@ def Update_pictures(frames):
                         pic.ax4.plot(ox[1:resolution], PictureData.CH4[ImCont.oY,1:resolution], ox[1:resolution], PictureData.CH4[(ImCont.oY-1),1:resolution], color="C0")
             if(ScanParam.mode == Status.CONTINUOUS):
                 x = np.linspace(0, (ScanParam.resolution), (ScanParam.resolution))
-                pic.ax4.plot(x[1:(ScanParam.resolution)], ContinuousMode.f_ch2[1 : (ScanParam.resolution)], color="C0")
+                pic.ax4.plot(x[1:(ScanParam.resolution)], ContinuousMode.v_ch2[1 : (ScanParam.resolution)], color="C0")
             if(ScanParam.mode == Status.SEMI):
                 x = np.linspace(0, SemiMode.buf_size, SemiMode.buf_size)
                 pic.ax4.plot(x[1:SemiMode.buf_size], SemiMode.f_ch2[1:SemiMode.buf_size], color="C0")

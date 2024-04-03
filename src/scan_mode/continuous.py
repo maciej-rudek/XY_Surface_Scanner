@@ -14,6 +14,7 @@ class Mode_continuous:
     WAIT_START = 0.2
     old_line = 0
     max_y_lines = 0
+    line = 0 
 
     def Scan():
         Wait_stop = ( 1 / ContinuousMode.hzAcq[0].value ) * 2
@@ -37,9 +38,9 @@ class Mode_continuous:
                     ofA = i
                     ofsetC = i + double_res
                     if ( (ContinuousMode.v_ch1[0:double_res] == ContinuousMode.f_ch1[ofA : ofsetC])).all():
-                        line = int ((ending - i) / double_res) - 1
+                        Mode_continuous.line = int ((ending - i) / double_res) - 1
                         
-                        for y_line in range(line):
+                        for y_line in range(Mode_continuous.line):
                                 y_lin = int(y_line + Mode_continuous.old_line)
                                 if(y_lin < resolution):
                                     ofA = y_line * double_res + ofsetC
@@ -54,14 +55,14 @@ class Mode_continuous:
                                 else:
                                     break
                                 
-                        Mode_continuous.old_line = Mode_continuous.old_line + line
+                        Mode_continuous.old_line = Mode_continuous.old_line + Mode_continuous.line
                                 
             else:
-                line = (actual - (actual % double_res)) / double_res
+                Mode_continuous.line = (actual - (actual % double_res)) / double_res
             
-                if (line > 0 and line < resolution):
+                if (Mode_continuous.line > 0 and Mode_continuous.line < resolution):
                         
-                    for y_line in range(int(Mode_continuous.old_line), int(line), 1):
+                    for y_line in range(int(Mode_continuous.old_line), int(Mode_continuous.line), 1):
                         y_lin = y_line
                         if(y_lin < resolution):
                             ofA = y_line * double_res
@@ -76,9 +77,10 @@ class Mode_continuous:
                         else:
                             break
             
-                Mode_continuous.old_line = line
+                Mode_continuous.old_line = Mode_continuous.line
                 
-            if(Mode_continuous.old_line + line >= resolution):
+            if(Mode_continuous.old_line + Mode_continuous.line >= resolution):
+                Mode_continuous.line = 0
                 ScanParam.scan = Status.STOP
                 File_Operation.save_manager_files()
                 
