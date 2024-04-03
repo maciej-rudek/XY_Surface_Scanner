@@ -11,6 +11,7 @@ class Device_conti:
     def First_configuration():
         Device_conti.Set_shift_aqusition()
         Device_conti.Set_continuous_sin_output()
+        Device_conti.Set_Out_In_on_once()
 
 
     def Set_shift_aqusition(): 
@@ -23,10 +24,10 @@ class Device_conti:
         Dwf.dw.FDwfAnalogInChannelRangeSet(Dwf.hdwf, iCH_0, c_double(10))
         Dwf.dw.FDwfAnalogInChannelRangeSet(Dwf.hdwf, iCH_1, c_double(10))
         Dwf.dw.FDwfAnalogInAcquisitionModeSet(Dwf.hdwf, acqmodeScanShift)
-        Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(1), c_int(0)) 
+        # Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(1), c_int(0)) 
         Dwf.dw.FDwfAnalogInFrequencySet(Dwf.hdwf, c_double(frequency))
         Dwf.dw.FDwfAnalogInBufferSizeSet(Dwf.hdwf,  c_int(ContinuousMode.buf_size))
-        Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
+        # Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
 
     
     def Set_start_offset_output():
@@ -63,14 +64,24 @@ class Device_conti:
         Dwf.dw.FDwfAnalogOutRunSet(Dwf.hdwf, oCH_A, c_double(runtime)) # run once 
         Dwf.dw.FDwfAnalogOutRunSet(Dwf.hdwf, oCH_B, c_double(runtime)) # run once 
         
-        Dwf.dw.FDwfAnalogOutConfigure(Dwf.hdwf, oCH_A, c_bool(True))
-        Dwf.dw.FDwfAnalogOutConfigure(Dwf.hdwf, oCH_B, c_bool(True))
+        # Dwf.dw.FDwfAnalogOutConfigure(Dwf.hdwf, oCH_A, c_bool(True))
+        # Dwf.dw.FDwfAnalogOutConfigure(Dwf.hdwf, oCH_B, c_bool(True))
         
-        Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(0)) # check if it is necsesery
+        # Dwf.dw.FDwfAnalogOutNodeOffsetSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_double(0)) # check if it is necsesery
                 
         time.sleep(2)
         
     
+    def Set_Out_In_on_once():
+        
+        Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(1), c_int(0))
+        Dwf.dw.FDwfAnalogInConfigure(Dwf.hdwf, c_int(0), c_int(1))
+        # time.sleep(0.1)
+        Dwf.dw.FDwfAnalogOutConfigure(Dwf.hdwf, oCH_A, c_bool(True))
+        Dwf.dw.FDwfAnalogOutConfigure(Dwf.hdwf, oCH_B, c_bool(True))
+        
+        
+        
     def Switch_off_output():
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_A, AnalogOutNodeCarrier, c_bool(False))
         Dwf.dw.FDwfAnalogOutNodeEnableSet(Dwf.hdwf, oCH_B, AnalogOutNodeCarrier, c_bool(False))

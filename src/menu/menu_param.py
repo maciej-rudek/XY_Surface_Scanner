@@ -87,7 +87,8 @@ class MenuParams:
     def param_phase1(data_params):
         """oCH 1 - phase shift"""
         if(ScanParam.mode != Status.SAMPLE):
-            ContinuousMode.phase_ch1 = c_double(data_params)
+            f_data_params = float(data_params)
+            ContinuousMode.phase_ch1 = c_double(f_data_params)
         else:
             DwfData.logError = "NO Continuous mode ON !"
 
@@ -95,7 +96,8 @@ class MenuParams:
     def param_phase2(data_params):
         """oCH 2 - phase shift"""
         if(ScanParam.mode != Status.SAMPLE):
-            ContinuousMode.phase_ch2 = c_double(data_params)
+            f_data_params = float(data_params)
+            ContinuousMode.phase_ch2 = c_double(f_data_params)
         else:
             DwfData.logError = "NO continuous or semi mode ON !"
     

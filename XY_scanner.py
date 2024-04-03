@@ -60,13 +60,13 @@ def Update_pictures(frames):
     resolution = ScanParam.resolution
 
     pic.ax1.cla()
-    pic.ax1.set_title("CH 1 - TOPO L->P")
+    pic.ax1.set_title("TOPO ->")
     pic.ax2.cla()
-    pic.ax2.set_title("CH 2 - ERROR L->P")
+    pic.ax2.set_title("ERROR ->")
     pic.ax5.cla()
-    pic.ax5.set_title("CH 1 - TOPO P->L")
+    pic.ax5.set_title("TOPO <-")
     pic.ax6.cla()
-    pic.ax6.set_title("CH 2 - ERROR P->L")
+    pic.ax6.set_title("ERROR <-")
 
     pic.ax1.imshow(PictureData.CH1,  cmap='Oranges_r', interpolation='none')
     pic.ax2.imshow(PictureData.CH2,  cmap='afmhot', interpolation='none')
