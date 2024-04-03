@@ -55,7 +55,7 @@ class MenuControll:
         print("Scan sample: \t", SampleMode.sample, "     ")
         print("Resolution: \t", ScanParam.resolution, "     ")
         print("Scan area: \t", (ScanParam.area), "     ")
-        print("Scan area: \t", (ScanParam.oxy), "     ")
+        print("Scan oXY: \t", (ScanParam.oxy), "     ")
         print("Offset X: \t", (ScanParam.offset_x), "     ")
         print("Offset Y: \t", (ScanParam.offset_y), "     ")
         if(ScanParam.mode == Status.SAMPLE):

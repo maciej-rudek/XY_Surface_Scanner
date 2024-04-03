@@ -33,11 +33,15 @@ class MenuParams:
     def param_area(data_params):
         """Scan Area [1-100] """
         ScanParam.area = int(data_params)
+        ScanParam.oxy = 5 * float(ScanParam.area/100)
 
     @staticmethod
     def param_res(data_params):
         """Resolution [50-500] """
         ScanParam.resolution = int(data_params)
+        if(ScanParam.mode == Status.CONTINUOUS):
+            ContinuousMode.v_ch1 = np.arange(ScanParam.resolution * 2, dtype=float)
+            ContinuousMode.v_ch2 = np.arange(ScanParam.resolution * 2, dtype=float)
 
     @staticmethod
     def param_freq(data_params):
@@ -47,6 +51,7 @@ class MenuParams:
             dana = (int(data_params) % 2000) * 1000
             SampleMode.hzAcq[0] = c_double(dana)
         if(ScanParam.mode == Status.CONTINUOUS):
+            dana = float(data_params)
             ContinuousMode.hzAcq[0] = c_double(dana)
         if(ScanParam.mode == Status.SEMI):
             dana = float(data_params)
@@ -66,6 +71,7 @@ class MenuParams:
     def param_oxy(data_params):
         """____"""
         ScanParam.oxy = float(data_params)
+        ScanParam.area = int((ScanParam.oxy/5) * 100)
 
     @staticmethod
     def param_dx(data_params):
